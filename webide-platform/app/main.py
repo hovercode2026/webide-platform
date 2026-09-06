@@ -385,8 +385,43 @@ def fetch_pod_metrics():
 
 
 history = deque(maxlen=240)
+host_hist = deque(maxlen=240)
+host_latest = {}
 idle_since = {}
 CPU_IDLE_M = 5.0
+
+
+def _cpu_times():
+    with open("/proc/stat") as f:
+        parts = f.readline().split()[1:]
+    vals = list(map(float, parts[:8]))
+    idle = vals[3] + (vals[4] if len(vals) > 4 else 0)
+    return idle, sum(vals)
+
+
+def host_snapshot(prev_cpu):
+    """容器与宿主机共享内核, /proc 与根文件系统直接反映宿主机真实状态。"""
+    mem = {}
+    with open("/proc/meminfo") as f:
+        for line in f:
+            k, _, v = line.partition(":")
+            mem[k.strip()] = float(v.split()[0])  # kB
+    total_mi = mem["MemTotal"] / 1024
+    used_mi = total_mi - mem.get("MemAvailable", mem.get("MemFree", 0)) / 1024
+    st = os.statvfs("/")
+    disk_total_gi = st.f_blocks * st.f_frsize / 2**30
+    disk_used_gi = disk_total_gi - st.f_bavail * st.f_frsize / 2**30
+    prev_idle, prev_total = prev_cpu
+    cur_idle, cur_total = _cpu_times()
+    cpu_pct = 0.0
+    if cur_total > prev_total:
+        cpu_pct = round(max(0.0, min(100.0, (1 - (cur_idle - prev_idle) / (cur_total - prev_total)) * 100)), 1)
+    return ({"mem_total_mi": round(total_mi), "mem_used_mi": round(used_mi),
+             "disk_total_gi": round(disk_total_gi, 1), "disk_used_gi": round(disk_used_gi, 1),
+             "cpu_pct": cpu_pct, "cores": os.cpu_count() or 1,
+             "load1": float(open("/proc/loadavg").read().split()[0]),
+             "ts": int(time.time())},
+            (cur_idle, cur_total))
 
 
 def idle_check(m, now):
@@ -424,6 +459,7 @@ def idle_check(m, now):
 
 
 def sampler():
+    prev_cpu = _cpu_times()
     while True:
         try:
             m = fetch_pod_metrics()
@@ -432,8 +468,12 @@ def sampler():
                     "cpu_m": round(sum(v["cpu_m"] for v in m.values()), 1),
                     "mem_mi": round(sum(v["mem_mi"] for v in m.values()), 1),
                     "pods": {k: dict(v) for k, v in m.items()}}
+            host, prev_cpu = host_snapshot(prev_cpu)
             with _lock:
                 history.append(snap)
+                host_hist.append(host)
+                host_latest.clear()
+                host_latest.update(host)
             idle_check(m, now)
         except Exception as e:
             print("[webide] sampler:", e, flush=True)
@@ -899,7 +939,9 @@ def metrics(u):
     m = fetch_pod_metrics()
     with _lock:
         hist = list(history)
-    return jsonify({"ok": True, "history": hist, "pods": m, "memBudgetMi": MEM_BUDGET_MI})
+        hh = list(host_hist)
+    return jsonify({"ok": True, "history": hist, "pods": m, "memBudgetMi": MEM_BUDGET_MI,
+                    "host": dict(host_latest), "hostHistory": hh})
 
 
 @app.route("/api/audit")
