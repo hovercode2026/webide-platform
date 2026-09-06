@@ -29,7 +29,6 @@
   ::placeholder{color:var(--t4)}
   .hidden{display:none!important}
 
-  /* ================= 布局骨架 ================= */
   .shell{display:flex;height:100vh;overflow:hidden}
   .sider{width:224px;flex:none;background:var(--card);border-right:1px solid var(--border-l);
     display:flex;flex-direction:column;z-index:30}
@@ -62,26 +61,22 @@
     color:var(--t2);transition:all .15s}
   .icon-btn:hover{background:#f2f3f5;color:var(--t1)}
   .icon-btn svg{width:16px;height:16px}
-  .userchip{display:flex;align-items:center;gap:8px;padding:4px 6px 4px 4px;border-radius:99px;transition:background .15s}
+  .userchip{display:flex;align-items:center;gap:8px;padding:4px 6px 4px 4px;border-radius:99px}
   .avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#3370ff,#7b5cff);
     color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center}
   .userchip .name{font-size:13px;color:var(--t1)}
   .userchip .role{font-size:10px;background:var(--primary-bg);color:var(--primary);border-radius:4px;padding:1px 5px}
   .content{flex:1;overflow-y:auto;padding:24px 28px 48px}
 
-  /* ================= 通用组件 ================= */
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:34px;padding:0 16px;
     border-radius:8px;font-size:13.5px;font-weight:500;transition:all .15s;border:1px solid transparent;white-space:nowrap}
   .btn svg{width:14px;height:14px}
   .btn-pri{background:var(--primary);color:#fff}
   .btn-pri:hover{background:var(--primary-h)}
-  .btn-pri:active{background:var(--primary-a)}
   .btn-def{background:var(--card);border-color:var(--border);color:var(--t1)}
   .btn-def:hover{border-color:var(--primary);color:var(--primary)}
   .btn-danger{background:var(--danger);color:#fff}
   .btn-danger:hover{background:#f7655f}
-  .btn-ghost-danger{background:var(--card);border-color:var(--border);color:var(--danger)}
-  .btn-ghost-danger:hover{background:var(--danger-bg);border-color:var(--danger)}
   .btn-sm{height:28px;padding:0 10px;font-size:12.5px;border-radius:7px}
   .btn[disabled]{opacity:.45;cursor:not-allowed;pointer-events:none}
   .link-act{color:var(--primary);font-size:13px;padding:2px 6px;border-radius:6px;transition:all .12s}
@@ -106,9 +101,7 @@
   .badge.stop{background:#f2f3f5;color:var(--t3)}.badge.stop .dot{background:var(--t4)}
   @keyframes blink{50%{opacity:.25}}
 
-  /* ================= 登录页 ================= */
-  #login-view{height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;
-    background:#eef2f8}
+  #login-view{height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;background:#eef2f8}
   #login-view::before{content:"";position:absolute;width:720px;height:720px;border-radius:50%;
     background:radial-gradient(closest-side,rgba(51,112,255,.16),transparent);top:-260px;left:-180px}
   #login-view::after{content:"";position:absolute;width:640px;height:640px;border-radius:50%;
@@ -126,21 +119,20 @@
   .ipt input{width:100%;height:40px;border:1px solid var(--border);border-radius:8px;background:#fbfbfc;
     padding:0 12px 0 36px;font-size:13.5px;color:var(--t1);outline:none;transition:all .15s}
   .ipt input:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px rgba(51,112,255,.12)}
-  #login-btn{width:100%;height:42px;font-size:14.5px;margin-top:4px}
+  .ipt.plain input{padding-left:12px}
+  #login-btn,#register-btn{width:100%;height:42px;font-size:14.5px;margin-top:4px}
   #login-err{color:var(--danger);font-size:12.5px;min-height:18px;margin-top:10px;text-align:center}
   .auth-switch{text-align:center;font-size:12.5px;color:var(--t3);margin-top:14px}
   .auth-switch a{cursor:pointer}
   .login-foot{margin-top:16px;padding-top:14px;border-top:1px solid var(--border-l);
     display:flex;justify-content:center;gap:14px;font-size:11.5px;color:var(--t4)}
 
-  /* ================= 概览页 ================= */
   .banner{position:relative;border-radius:14px;overflow:hidden;color:#fff;
     background:linear-gradient(118deg,#245bdb 0%,#3370ff 55%,#6a9bff 100%);
     padding:26px 30px;margin-bottom:20px;box-shadow:0 8px 24px rgba(36,91,219,.28)}
-  .banner h2{font-size:20px;font-weight:600;letter-spacing:.3px}
+  .banner h2{font-size:20px;font-weight:600}
   .banner p{font-size:13px;opacity:.85;margin:6px 0 18px}
   .banner .btn{background:#fff;color:var(--primary-a);height:36px;font-weight:600}
-  .banner .btn:hover{background:#f0f5ff}
   .banner svg.deco{position:absolute;right:24px;top:50%;transform:translateY(-50%);opacity:.5}
   .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
   .stat{background:var(--card);border-radius:12px;padding:18px 20px;box-shadow:var(--sh-sm);
@@ -149,13 +141,13 @@
   .stat .k{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--t3)}
   .stat .ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:none}
   .stat .ico svg{width:15px;height:15px}
-  .stat .v{font-size:26px;font-weight:600;margin-top:10px;letter-spacing:.3px;font-variant-numeric:tabular-nums}
+  .stat .v{font-size:26px;font-weight:600;margin-top:10px;font-variant-numeric:tabular-nums}
   .stat .v small{font-size:12px;color:var(--t3);font-weight:400;margin-left:2px}
   .bar{height:4px;border-radius:99px;background:#eef0f3;margin-top:12px;overflow:hidden}
   .bar i{display:block;height:100%;border-radius:99px;background:var(--primary);transition:width .5s}
   .bar i.full{background:var(--danger)}
   .grid2{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:20px}
-  .kv{display:grid;grid-template-columns:96px 1fr;row-gap:12px;padding:18px 20px;font-size:13px}
+  .kv{display:grid;grid-template-columns:110px 1fr;row-gap:11px;padding:18px 20px;font-size:13px}
   .kv .k{color:var(--t3)}
   .kv .v{color:var(--t1);font-weight:500}
   .spec{display:grid;grid-template-columns:1fr;gap:10px;padding:16px 20px}
@@ -163,16 +155,12 @@
     border-radius:10px;padding:10px 14px}
   .spec .it b{display:block;font-size:13.5px}
   .spec .it span{font-size:11.5px;color:var(--t3)}
-  .spec .it .rad{margin-left:auto}
-
-  /* 曲线卡 */
   .chart-wrap{padding:6px 20px 14px}
   .chart-meta{display:flex;gap:16px;font-size:11.5px;color:var(--t3);padding:10px 20px 0}
   .chart-meta .lg{display:flex;align-items:center;gap:6px}
   .chart-meta .lg i{width:14px;height:3px;border-radius:2px;display:inline-block}
   .chart-svg{width:100%;height:110px;display:block}
-
-  /* 最近动态 */
+  .chart-svg.sm{height:80px}
   .feed{padding:8px 20px 16px;max-height:280px;overflow-y:auto}
   .feed .it{display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed var(--border-l);font-size:12.5px}
   .feed .it:last-child{border-bottom:none}
@@ -182,7 +170,6 @@
   .feed .tm{color:var(--t4);font-size:11.5px;white-space:nowrap}
   .feed .empty{padding:20px 0;text-align:center;color:var(--t3)}
 
-  /* ================= 实例管理页 ================= */
   .page-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px}
   .page-head h2{font-size:19px;font-weight:600}
   .page-head p{font-size:12.5px;color:var(--t3);margin-top:3px}
@@ -194,7 +181,7 @@
     padding:0 12px 0 30px;font-size:13px;outline:none;transition:all .15s}
   .search input:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px rgba(51,112,255,.12)}
   .seg{display:flex;background:#f2f3f5;border-radius:8px;padding:3px}
-  .seg button{height:26px;padding:0 12px;border-radius:6px;font-size:12.5px;color:var(--t2);transition:all .15s}
+  .seg button{height:26px;padding:0 12px;border-radius:6px;font-size:12.5px;color:var(--t2)}
   .seg button.on{background:#fff;color:var(--t1);font-weight:600;box-shadow:var(--sh-sm)}
 
   table{width:100%;border-collapse:collapse}
@@ -209,6 +196,8 @@
     display:flex;align-items:center;justify-content:center;font-family:Consolas,monospace}
   .iname b{font-weight:600;font-size:13.5px}
   .iname span{display:block;font-size:11.5px;color:var(--t3);font-weight:400}
+  .iname.click{cursor:pointer}
+  .iname.click:hover b{color:var(--primary)}
   .usage{display:flex;flex-direction:column;gap:3px;min-width:110px}
   .usage .row{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--t2);font-family:Consolas,monospace}
   .usage .row em{font-style:normal;color:var(--t4);width:14px}
@@ -222,10 +211,9 @@
   .addr .cp svg{width:13px;height:13px}
   .empty{padding:60px 0 70px;text-align:center}
   .empty svg{width:120px;height:96px;margin-bottom:16px}
-  .empty .t1{font-size:14.5px;font-weight:600;color:var(--t1)}
+  .empty .t1{font-size:14.5px;font-weight:600}
   .empty .t2{font-size:12.5px;color:var(--t3);margin:6px 0 18px}
 
-  /* ================= 弹窗 ================= */
   .mask{position:fixed;inset:0;background:rgba(31,35,41,.5);backdrop-filter:blur(2px);z-index:100;
     display:none;align-items:flex-start;justify-content:center;padding-top:10vh;animation:fade .15s}
   .mask.show{display:flex}
@@ -242,13 +230,13 @@
   .warnbox{display:flex;gap:10px;background:var(--warning-bg);border-radius:10px;padding:12px 14px;
     font-size:12.5px;color:#9a5b00;margin-top:14px;line-height:1.7}
   .warnbox svg{width:15px;height:15px;flex:none;margin-top:2px;color:var(--warning)}
+  .warnbox.red{background:var(--danger-bg);color:#a8322e}
   .flavors{display:flex;flex-direction:column;gap:10px}
   .flv{display:flex;align-items:center;gap:12px;border:1.5px solid var(--border-l);border-radius:10px;
     padding:12px 14px;cursor:pointer;transition:all .15s;position:relative;background:#fff}
   .flv:hover{border-color:var(--primary)}
   .flv.on{border-color:var(--primary);background:var(--primary-bg)}
   .flv.dis{opacity:.55;cursor:not-allowed;background:#fafbfc}
-  .flv.dis:hover{border-color:var(--border-l)}
   .flv .rad{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--t4);flex:none;position:relative}
   .flv.on .rad{border-color:var(--primary)}
   .flv.on .rad::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--primary)}
@@ -258,8 +246,7 @@
   .flv .nofit{color:var(--danger)!important;margin-left:8px!important}
   .flv .spec-t{display:flex;gap:6px;flex:none}
   .flv .okmark{position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;
-    background:var(--primary);color:#fff;display:none;align-items:center;justify-content:center;
-    box-shadow:0 2px 6px rgba(51,112,255,.4)}
+    background:var(--primary);color:#fff;display:none;align-items:center;justify-content:center}
   .flv.on .okmark{display:flex}
   .flv .okmark svg{width:10px;height:10px}
   .tpls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
@@ -272,7 +259,47 @@
   .tpl b{display:block;font-size:12.5px;margin-top:4px}
   .del-name{color:var(--danger);font-weight:600}
 
-  /* ================= IDE 抽屉 ================= */
+  /* 详情抽屉 */
+  .drawer{position:fixed;inset:0;background:rgba(31,35,41,.45);z-index:150;display:none;animation:fade .15s}
+  .drawer.show{display:block}
+  .drawer-panel{position:absolute;top:0;right:0;bottom:0;width:660px;max-width:94vw;background:var(--bg);
+    box-shadow:-12px 0 40px rgba(0,0,0,.2);display:flex;flex-direction:column;animation:slidein .2s ease-out}
+  @keyframes slidein{from{transform:translateX(40px);opacity:0}}
+  .d-head{display:flex;align-items:center;gap:12px;padding:16px 22px;background:var(--card);border-bottom:1px solid var(--border-l)}
+  .d-head .chip{width:38px;height:38px;border-radius:10px;color:#fff;font-size:15px;font-weight:600;
+    display:flex;align-items:center;justify-content:center;font-family:Consolas,monospace}
+  .d-head .tt b{font-size:16px;display:block;line-height:1.3}
+  .d-head .tt span{font-size:12px;color:var(--t3)}
+  .d-head .sp{flex:1}
+  .d-body{flex:1;overflow-y:auto;padding:18px 22px 40px}
+  .d-sec{background:var(--card);border:1px solid var(--border-l);border-radius:12px;margin-bottom:16px;overflow:hidden}
+  .d-sec .h{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border-l);
+    font-size:13.5px;font-weight:600}
+  .d-sec .h .sub{font-weight:400;font-size:11.5px;color:var(--t3)}
+  .d-sec .h .sp{flex:1}
+  .d-sec .b{padding:14px 16px}
+  .d-kv{display:grid;grid-template-columns:96px 1fr;row-gap:9px;font-size:13px}
+  .d-kv .k{color:var(--t3)}
+  .port-row{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:13px;border-bottom:1px dashed var(--border-l)}
+  .port-row:last-child{border-bottom:none}
+  .term{background:#141821;border-radius:10px;padding:12px;font-family:Consolas,Menlo,monospace;
+    font-size:12.5px;color:#d5dbe5;height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+  .term .dim{color:#6b7686}
+  .term-in{display:flex;gap:8px;margin-top:10px}
+  .term-in input{flex:1;background:#141821;border:1px solid #2a3140;border-radius:8px;color:#e6edf3;
+    font-family:Consolas,monospace;font-size:13px;padding:9px 12px;outline:none}
+  .term-in input:focus{border-color:var(--primary)}
+  .switch{position:relative;width:40px;height:22px;background:#d5d9e0;border-radius:99px;cursor:pointer;transition:all .2s;flex:none}
+  .switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;
+    box-shadow:0 1px 3px rgba(0,0,0,.25);transition:all .2s}
+  .switch.on{background:var(--primary)}
+  .switch.on::after{left:20px}
+  .set-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px dashed var(--border-l);font-size:13px}
+  .set-row:last-child{border-bottom:none}
+  .set-row .sp{flex:1}
+  .num-ipt{width:76px;height:32px;border:1px solid var(--border);border-radius:8px;padding:0 10px;font-size:13px;outline:none}
+  .num-ipt:focus{border-color:var(--primary)}
+
   .ide{position:fixed;inset:0;z-index:200;display:none;flex-direction:column;background:#252830;animation:fade .18s}
   .ide.show{display:flex}
   .ide-bar{height:50px;flex:none;display:flex;align-items:center;gap:12px;padding:0 16px;
@@ -285,7 +312,6 @@
   .ide-bar .sp{flex:1}
   .ide iframe{flex:1;border:none;width:100%}
 
-  /* ================= Toast ================= */
   #toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:10px;align-items:center}
   .toast{display:flex;align-items:center;gap:9px;background:var(--card);border-radius:10px;box-shadow:var(--sh-lg);
     padding:11px 18px;font-size:13.5px;animation:pop .2s;border:1px solid var(--border-l)}
@@ -300,7 +326,6 @@
 </head>
 <body>
 
-<!-- ==================== 登录 / 注册 ==================== -->
 <div id="login-view" class="hidden">
   <div class="login-card">
     <div class="login-brand">
@@ -339,7 +364,6 @@
   </div>
 </div>
 
-<!-- ==================== 主界面 ==================== -->
 <div id="app-view" class="shell hidden">
   <aside class="sider">
     <div class="brand">
@@ -354,6 +378,9 @@
       <button class="nav-item" data-view="instances">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 9L6 12l2.5 3M15.5 9L18 12l-2.5 3"/><rect x="2.5" y="4" width="19" height="16" rx="3"/></svg>
         实例管理</button>
+      <button class="nav-item hidden" data-view="users" id="nav-users">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.7c2.8.3 6 1.9 6 5.3"/></svg>
+        用户管理</button>
     </nav>
     <div class="sider-foot">
       <div class="env-chip"><span class="dot" id="env-dot"></span><span id="env-text">集群连接正常</span></div>
@@ -459,19 +486,50 @@
         </div>
         <table>
           <thead><tr>
-            <th style="width:24%">实例名称</th><th style="width:13%">状态</th>
+            <th style="width:25%">实例名称</th><th style="width:13%">状态</th>
             <th style="width:15%">实时用量</th><th style="width:15%">访问地址</th>
-            <th style="width:12%">创建时间</th><th style="width:21%">操作</th>
+            <th style="width:11%">创建时间</th><th style="width:21%">操作</th>
           </tr></thead>
           <tbody id="rows"></tbody>
         </table>
         <div id="list-extra"></div>
       </div>
     </div>
+
+    <!-- ===== 用户管理(admin) ===== -->
+    <div class="content hidden" id="view-users">
+      <div class="page-head">
+        <div><h2>用户与策略</h2><p>管理平台账号与全局策略（空闲休眠自动释放内存预算）</p></div>
+      </div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-h"><b>空闲休眠策略</b><span class="sub">实例 CPU 持续低于 5m 视为空闲，自动停止以释放内存预算（数据保留）</span></div>
+        <div class="b" style="padding:14px 20px">
+          <div class="set-row">
+            <span>启用空闲休眠</span><div class="sp"></div>
+            <div class="switch" id="sw-idle"></div></div>
+          <div class="set-row">
+            <span>空闲判定时长</span><div class="sp"></div>
+            <input class="num-ipt" id="idle-minutes" type="number" min="5" max="240"> <span style="color:var(--t3);font-size:12px">分钟（5-240）</span></div>
+          <div style="display:flex;justify-content:flex-end;margin-top:10px">
+            <button class="btn btn-pri btn-sm" id="settings-save">保存策略</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><b>平台用户</b><span class="sub" id="user-count"></span></div>
+        <table>
+          <thead><tr>
+            <th style="width:22%">用户名</th><th style="width:14%">角色</th>
+            <th style="width:16%">实例数</th><th style="width:16%">运行中</th>
+            <th style="width:16%">注册时间</th><th style="width:16%">操作</th>
+          </tr></thead>
+          <tbody id="user-rows"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- ==================== 创建弹窗 ==================== -->
+<!-- 创建弹窗 -->
 <div class="mask" id="create-mask">
   <div class="modal">
     <div class="m-head"><b>创建开发实例</b>
@@ -495,13 +553,13 @@
   </div>
 </div>
 
-<!-- ==================== 删除确认 ==================== -->
+<!-- 删除确认 -->
 <div class="mask" id="del-mask">
   <div class="modal">
     <div class="m-head"><b>删除实例</b>
       <button class="icon-btn x" data-close="del-mask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
     <div class="m-body">
-      <div class="warnbox" style="background:var(--danger-bg);color:#a8322e;margin-top:0">
+      <div class="warnbox red" style="margin-top:0">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--danger)"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
         <span>即将删除实例 <b class="del-name" id="del-name"></b>，其持久盘上的<b>全部数据将被永久清除</b>，不可恢复。</span></div>
       <div class="f-item" style="margin-top:14px"><label>请输入实例名称以确认操作</label>
@@ -513,18 +571,15 @@
   </div>
 </div>
 
-<!-- ==================== 修改密码 ==================== -->
+<!-- 修改密码 -->
 <div class="mask" id="pwd-mask">
   <div class="modal" style="width:400px">
     <div class="m-head"><b>修改密码</b>
       <button class="icon-btn x" data-close="pwd-mask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
     <div class="m-body">
-      <div class="f-item"><label>原密码</label>
-        <div class="ipt"><input id="pw-old" type="password" placeholder="请输入原密码"></div></div>
-      <div class="f-item"><label>新密码（至少 6 位）</label>
-        <div class="ipt"><input id="pw-new" type="password" placeholder="设置新密码"></div></div>
-      <div class="f-item"><label>确认新密码</label>
-        <div class="ipt"><input id="pw-new2" type="password" placeholder="再次输入新密码"></div>
+      <div class="f-item"><label>原密码</label><div class="ipt plain"><input id="pw-old" type="password" placeholder="请输入原密码"></div></div>
+      <div class="f-item"><label>新密码（至少 6 位）</label><div class="ipt plain"><input id="pw-new" type="password" placeholder="设置新密码"></div></div>
+      <div class="f-item"><label>确认新密码</label><div class="ipt plain"><input id="pw-new2" type="password" placeholder="再次输入新密码"></div>
         <div class="form-err" id="pwd-err"></div></div>
     </div>
     <div class="m-foot">
@@ -533,19 +588,82 @@
   </div>
 </div>
 
-<!-- ==================== IDE 抽屉 ==================== -->
+<!-- 重置用户密码(admin) -->
+<div class="mask" id="rp-mask">
+  <div class="modal" style="width:400px">
+    <div class="m-head"><b>重置用户密码</b>
+      <button class="icon-btn x" data-close="rp-mask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="m-body">
+      <div class="f-item"><label>用户：<b id="rp-user" style="color:var(--primary)"></b></label>
+        <div class="f-item"><label>新密码（至少 6 位）</label><div class="ipt plain"><input id="rp-pass" type="password" placeholder="输入新密码"></div></div>
+        <div class="form-err" id="rp-err"></div></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-def" data-close="rp-mask">取消</button>
+      <button class="btn btn-pri" id="rp-ok">确认重置</button></div>
+  </div>
+</div>
+
+<!-- 实例详情抽屉 -->
+<div class="drawer" id="detail-mask">
+  <div class="drawer-panel">
+    <div class="d-head">
+      <span class="chip" id="d-chip">D</span>
+      <div class="tt"><b id="d-name">-</b><span id="d-sub"></span></div>
+      <div class="sp"></div>
+      <span id="d-state"></span>
+      <button class="icon-btn" id="d-refresh" title="刷新">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-2.6-6.4M21 3v6h-6"/></svg></button>
+      <button class="icon-btn" id="d-close" title="关闭">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="d-body">
+      <div class="d-sec">
+        <div class="h">基本信息<div class="sp"></div><span id="d-actions"></span></div>
+        <div class="b"><div class="d-kv" id="d-kv"></div></div>
+      </div>
+      <div class="d-sec">
+        <div class="h">实例内存曲线<span class="sub">最近 20 分钟</span></div>
+        <div class="chart-wrap" id="d-chart"></div>
+      </div>
+      <div class="d-sec">
+        <div class="h">应用端口预览<span class="sub">把实例内运行的 Web 服务暴露给浏览器</span></div>
+        <div class="b">
+          <div id="d-ports"></div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <input class="num-ipt" id="port-input" type="number" min="1" max="65535" placeholder="如 3000" style="flex:none;width:120px">
+            <button class="btn btn-def btn-sm" id="port-add">暴露该端口</button>
+            <span style="font-size:11.5px;color:var(--t3);align-self:center">每实例最多 2 个，自动分配 NodePort</span></div>
+        </div>
+      </div>
+      <div class="d-sec">
+        <div class="h">命令终端<span class="sub">在实例内执行命令（25 秒超时）</span></div>
+        <div class="b">
+          <div class="term" id="term-out"><span class="dim"># 输出显示在此处。示例: ls -la /home/coder/project</span></div>
+          <div class="term-in">
+            <span style="align-self:center;color:#34c724;font-family:Consolas,monospace">$</span>
+            <input id="term-cmd" placeholder="输入命令后回车执行，如 ls / home/coder/project">
+            <button class="btn btn-pri btn-sm" id="term-run">执行</button></div>
+        </div>
+      </div>
+      <div class="d-sec">
+        <div class="h">最近事件</div>
+        <div class="feed" id="d-events" style="max-height:220px"><div class="empty">—</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- IDE 抽屉 -->
 <div class="ide" id="ide-mask">
   <div class="ide-bar">
     <span class="chip" id="ide-chip">D</span>
     <span class="ttl" id="ide-title">VSCode Server</span>
     <span class="url" id="ide-url"></span>
     <div class="sp"></div>
-    <button class="btn btn-def btn-sm" id="ide-refresh">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-2.6-6.4M21 3v6h-6"/></svg>刷新</button>
-    <button class="btn btn-def btn-sm" id="ide-copy">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>复制地址</button>
-    <button class="btn btn-pri btn-sm" id="ide-newtab">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M10 14L21 3M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/></svg>新窗口打开</button>
+    <button class="btn btn-def btn-sm" id="ide-refresh">刷新</button>
+    <button class="btn btn-def btn-sm" id="ide-copy">复制地址</button>
+    <button class="btn btn-pri btn-sm" id="ide-newtab">新窗口打开</button>
     <button class="btn btn-def btn-sm" id="ide-close">关闭预览</button>
   </div>
   <iframe id="ide-frame"></iframe>
@@ -561,9 +679,10 @@ const ICONS = {
   info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></svg>'
 };
 const CHIP_COLORS = ['#3370ff','#7b5cff','#00b2a9','#ff8800','#e0533d','#2f9e44'];
-let me = null, myRole = null, pollTimer = null, delTarget = null;
-let lastInstances = [], lastMetrics = null, lastAudit = null;
-let curFilter = 'all', curSearch = '', flavorCur = 'b', flavorMap = {}, tplCur = 'blank', tplMap = [];
+let me = null, myRole = null, pollTimer = null, delTarget = null, rpTarget = null, detailName = null;
+let lastInstances = [], curFilter = 'all', curSearch = '';
+let flavorCur = 'b', flavorMap = {}, tplCur = 'blank', tplMap = [];
+let termHist = [], termIdx = -1;
 
 function toast(msg, cls='info') {
   const d = document.createElement('div');
@@ -595,12 +714,11 @@ const stateBadge = s => {
 const chipColor = n => CHIP_COLORS[[...n].reduce((a,c)=>a+c.charCodeAt(0),0) % CHIP_COLORS.length];
 const fmtMi = mi => mi >= 1024 ? (mi/1024).toFixed(1)+'Gi' : Math.round(mi)+'Mi';
 
-/* ---------------- 视图切换 ---------------- */
 function switchView(v) {
   document.querySelectorAll('.nav-item').forEach(x => x.classList.toggle('active', x.dataset.view === v));
-  $('#view-overview').classList.toggle('hidden', v !== 'overview');
-  $('#view-instances').classList.toggle('hidden', v !== 'instances');
-  $('#crumb-cur').textContent = v === 'overview' ? '资源概览' : '实例管理';
+  ['overview','instances','users'].forEach(k => $('#view-'+k).classList.toggle('hidden', k !== v));
+  $('#crumb-cur').textContent = {overview:'资源概览', instances:'实例管理', users:'用户与策略'}[v] || v;
+  if (v === 'users') loadUsers();
 }
 document.querySelectorAll('.nav-item').forEach(b => b.onclick = () => switchView(b.dataset.view));
 
@@ -643,26 +761,27 @@ function showApp() {
   $('#u-avatar').textContent = (me[0] || 'A').toUpperCase();
   $('#u-role').textContent = myRole === 'admin' ? '管理员' : '开发者';
   $('#feed-sub').textContent = myRole === 'admin' ? '全平台操作审计' : '操作审计（仅管理员可见）';
+  $('#nav-users').classList.toggle('hidden', myRole !== 'admin');
   refresh();
   clearInterval(pollTimer);
   pollTimer = setInterval(() => { if (!$('#ide-mask').classList.contains('show')) refresh(); }, 5000);
 }
 
-/* ---------------- 数据刷新与渲染 ---------------- */
+/* ---------------- 刷新与渲染 ---------------- */
 $('#refresh-btn').onclick = () => { refresh(); toast('数据已刷新', 'ok'); };
 async function refresh() {
   try {
-    const reqs = [api('/api/capacity'), api('/api/instances'), api('/api/metrics')];
+    const reqs = [api('/api/capacity'), api('/api/instances'), api('/api/metrics'), api('/api/flavors')];
     if (myRole === 'admin') reqs.push(api('/api/audit'));
-    const [cap, inst, met, aud] = await Promise.all(reqs);
+    const [cap, inst, met, flv, aud] = await Promise.all(reqs);
     if (!cap.ok || !inst.ok) { $('#env-text').textContent = '集群连接异常'; $('#env-dot').style.background = 'var(--danger)'; return; }
     $('#env-text').textContent = '集群连接正常'; $('#env-dot').style.background = 'var(--success)';
     lastInstances = inst.instances;
-    if (met.ok) lastMetrics = met;
-    if (aud && aud.ok) lastAudit = aud;
     renderOverview(cap, inst, met);
+    if (flv.ok) renderSpecs(flv);
     if (aud && aud.ok) renderFeed(aud);
     renderList();
+    if (detailName && $('#detail-mask').classList.contains('show')) loadDetail(detailName, true);
   } catch (e) { $('#env-text').textContent = '网络波动，稍后重试'; }
 }
 function renderOverview(cap, inst, met) {
@@ -682,11 +801,25 @@ function renderOverview(cap, inst, met) {
   $('#cluster-kv').innerHTML = `
     <span class="k">节点名称</span><span class="v">${cap.node}</span>
     <span class="k">Kubernetes</span><span class="v">${cap.version.kubeletVersion}</span>
-    <span class="k">平台用户</span><span class="v">${cap.userCount} 个（每人最多同时运行 ${cap.userMaxRunning} 个实例）</span>
+    <span class="k">平台用户</span><span class="v">${cap.userCount} 个（每人最多同时运行 ${cap.userMaxRunning} 个）</span>
+    <span class="k">空闲休眠</span><span class="v">${cap.idleEnabled ? '已启用 · 空闲 ' + cap.idleMinutes + ' 分钟自动停止' : '未启用'}</span>
     <span class="k">访问端口池</span><span class="v">30001 - 30020（NodePort）</span>
-    <span class="k">内存预算</span><span class="v">${inst.runningMemMi || 0} / ${inst.memBudgetMi || 0} Mi</span>
     <span class="k">磁盘配额</span><span class="v">${inst.diskUsedGi || 0} / ${inst.diskBudgetGi || 0} Gi（持久卷）</span>`;
   renderChart(met);
+}
+function sparkline(data, W, H, budget, color) {
+  if (!data || data.length < 2) return '<div class="loading" style="padding:20px;color:var(--t3)">正在采样，稍候出图…</div>';
+  const max = Math.max((budget || 1) * 0.2, ...data.map(d => d.mem_mi)) * 1.15;
+  const pts = data.map((d, i) => [(i / (data.length - 1)) * W, H - (d.mem_mi / max) * (H - 8) - 4]);
+  const line = pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  const by = (H - ((budget || 0) / max) * (H - 8) - 4).toFixed(1);
+  return `<svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <defs><linearGradient id="g${color.slice(1)}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${color}" stop-opacity=".22"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    ${budget ? `<line x1="0" y1="${by}" x2="${W}" y2="${by}" stroke="#f54a45" stroke-width="1" stroke-dasharray="5 4" opacity=".7"/>` : ''}
+    <polygon points="0,${H} ${line} ${W},${H}" fill="url(#g${color.slice(1)})"/>
+    <polyline points="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="${pts[pts.length-1][0].toFixed(1)}" cy="${pts[pts.length-1][1].toFixed(1)}" r="3" fill="${color}"/></svg>`;
 }
 function renderChart(met) {
   const box = $('#chart-box');
@@ -694,25 +827,14 @@ function renderChart(met) {
   const h = met.history || [];
   $('#chart-now').textContent = h.length ? '当前 ' + fmtMi(h[h.length-1].mem_mi) + ' Mi / 预算 ' + met.memBudgetMi + ' Mi' : '采样中…';
   if (h.length < 2) { box.innerHTML = '<div class="loading" style="padding:24px;color:var(--t3)">正在采样，约 30 秒后出图…</div>'; return; }
-  const W = 900, H = 110, budget = met.memBudgetMi || 1;
-  const max = Math.max(budget * 0.2, ...h.map(d => d.mem_mi)) * 1.15;
-  const pts = h.map((d, i) => [(i / (h.length - 1)) * W, H - (d.mem_mi / max) * (H - 8) - 4]);
-  const line = pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
-  const by = (H - (budget / max) * (H - 8) - 4).toFixed(1);
   $('#chart-range').textContent = new Date(h[0].ts * 1000).toLocaleTimeString('zh-CN', {hour12:false}) + ' — ' +
     new Date(h[h.length-1].ts * 1000).toLocaleTimeString('zh-CN', {hour12:false});
-  box.innerHTML = `<svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
-    <defs><linearGradient id="gmem" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#3370ff" stop-opacity=".22"/><stop offset="1" stop-color="#3370ff" stop-opacity="0"/></linearGradient></defs>
-    <polygon points="0,${H} ${line} ${W},${H}" fill="url(#gmem)"/>
-    <line x1="0" y1="${by}" x2="${W}" y2="${by}" stroke="#f54a45" stroke-width="1" stroke-dasharray="5 4" opacity=".7"/>
-    <polyline points="${line}" fill="none" stroke="#3370ff" stroke-width="2" stroke-linejoin="round"/>
-    <circle cx="${pts[pts.length-1][0].toFixed(1)}" cy="${pts[pts.length-1][1].toFixed(1)}" r="3" fill="#3370ff"/></svg>`;
+  box.innerHTML = sparkline(h, 900, 110, met.memBudgetMi, '#3370ff');
 }
 function renderFeed(aud) {
   const items = aud.items || [];
   $('#feed').innerHTML = items.length ? items.slice(0, 12).map(i => `
-    <div class="it"><span class="dot" style="background:${i.action.includes('删除') ? 'var(--danger)' : i.action.includes('创建') ? 'var(--success)' : 'var(--primary)'}"></span>
+    <div class="it"><span class="dot" style="background:${i.action.includes('删除') ? 'var(--danger)' : i.action.includes('创建') ? 'var(--success)' : i.action.includes('休眠') ? 'var(--warning)' : 'var(--primary)'}"></span>
       <span class="tx"><b>${i.user}</b> ${i.action}${i.target ? ' <b>' + i.target + '</b>' : ''}${i.detail ? '<span style="color:var(--t4)"> · ' + i.detail + '</span>' : ''}</span>
       <span class="tm">${relTime(i.ts)}</span></div>`).join('')
     : '<div class="empty">暂无操作记录</div>';
@@ -721,7 +843,7 @@ function renderSpecs(flv) {
   if (flv.flavors) $('#spec-list').innerHTML = flv.flavors.map(f => `
     <div class="it" style="${f.fit ? '' : 'opacity:.5'}">
       <div><b>${f.name} · ${f.cpu}C ${f.mem} ${f.disk}</b><span>${f.desc}${f.fit ? '' : ' · 当前内存余量不足'}</span></div>
-      <span class="rad tag" style="margin-left:auto">${f.fit ? '可选' : '受限'}</span></div>`).join('');
+      <span class="tag" style="margin-left:auto">${f.fit ? '可选' : '受限'}</span></div>`).join('');
 }
 function usageCell(r) {
   if (r.state !== '运行中') return '<span class="off">未运行</span>';
@@ -757,10 +879,11 @@ function renderList() {
   $('#rows').innerHTML = rows.map(r => {
     const openable = r.nodePort && r.state === '运行中';
     const running = r.state === '运行中', stopped = r.state === '已停止';
-    const sub = `webide-${r.name} · ${r.flavorName} · ${r.resources.cpu}C ${r.resources.mem} ${r.resources.disk}`
+    const ports = (r.extraPorts || []).map(p => ` · :${p.port}→${p.nodePort}`).join('');
+    const sub = `${r.flavorName} · ${r.resources.cpu}C ${r.resources.mem} ${r.resources.disk}${ports}`
       + (myRole === 'admin' ? ' · 👤 ' + r.owner : '');
     return `<tr>
-      <td><div class="iname">
+      <td><div class="iname click" data-detail="${r.name}" title="查看详情">
         <span class="chip" style="background:${chipColor(r.name)}">${r.name.slice(0,1).toUpperCase()}</span>
         <div><b>${r.name}</b><span>${sub}</span></div></div></td>
       <td>${stateBadge(r.state)}</td>
@@ -776,6 +899,7 @@ function renderList() {
                      <span class="link-act ${running?'':'mute'}" data-stop="${r.name}">停止</span>`}
         <span class="link-act danger" data-del="${r.name}">删除</span></td></tr>`;
   }).join('');
+  $('#rows').querySelectorAll('[data-detail]').forEach(b => b.onclick = () => openDetail(b.dataset.detail));
   $('#rows').querySelectorAll('[data-open]').forEach(b => b.onclick = () => openIDE(b.dataset.open));
   $('#rows').querySelectorAll('[data-stop]').forEach(b => b.onclick = async () => {
     const r = await api(`/api/instances/${b.dataset.stop}/stop`, {method:'POST'});
@@ -802,8 +926,7 @@ function renderList() {
   $('#rows').querySelectorAll('[data-copy]').forEach(b => b.onclick = () => {
     const url = `http://${location.hostname}:${b.dataset.copy}`;
     (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject())
-      .then(() => toast('地址已复制：' + url, 'ok'))
-      .catch(() => toast(url, 'info'));
+      .then(() => toast('地址已复制：' + url, 'ok')).catch(() => toast(url, 'info'));
   });
 }
 
@@ -819,22 +942,6 @@ async function openCreate() {
   if (!flavorMap[flavorCur] || !flavorMap[flavorCur].fit)
     flavorCur = (r.flavors.find(f => f.fit) || r.flavors[0]).id;
   if (!tplMap.find(t => t.id === tplCur)) tplCur = tplMap[0] ? tplMap[0].id : 'blank';
-  renderFlavors(r);
-  $('#tpl-list').innerHTML = tplMap.map(t => `
-    <div class="tpl ${t.id === tplCur ? 'on' : ''}" data-tpl="${t.id}">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        ${t.id === 'python' ? '<path d="M12 3c-2.5 0-4 1-4 3v2h5v1H7c-2 0-4 1.5-4 4s2 4 4 4h2v-3c0-1.5 1.5-3 3-3h4c1.5 0 3-1 3-3V6c0-2-1.5-3-4-3h-3z"/><circle cx="9.5" cy="6" r=".8" fill="currentColor"/>'
-        : t.id === 'node' ? '<path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z"/><path d="M12 11v9M12 11L4 6.5M12 11l8-4.5"/>'
-        : '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/>'}
-      </svg><b>${t.name}</b></div>`).join('');
-  $('#tpl-list').querySelectorAll('.tpl').forEach(el => el.onclick = () => {
-    tplCur = el.dataset.tpl;
-    $('#tpl-list').querySelectorAll('.tpl').forEach(x => x.classList.toggle('on', x === el));
-  });
-  $('#mem-hint').textContent =
-    `实例内存共享集群预算：已用 ${r.memUsedMi} / ${r.memBudgetMi} Mi，持久磁盘已用 ${r.diskUsedGi} / ${r.diskBudgetGi} Gi。停止实例会立即释放其内存额度（数据保留）。`;
-}
-function renderFlavors(r) {
   $('#flavor-list').innerHTML = r.flavors.map(f => `
     <div class="flv ${f.id === flavorCur ? 'on' : ''} ${f.fit ? '' : 'dis'}" data-flv="${f.id}">
       <span class="rad"></span>
@@ -848,6 +955,19 @@ function renderFlavors(r) {
     flavorCur = el.dataset.flv;
     $('#flavor-list').querySelectorAll('.flv').forEach(x => x.classList.toggle('on', x === el));
   });
+  $('#tpl-list').innerHTML = tplMap.map(t => `
+    <div class="tpl ${t.id === tplCur ? 'on' : ''}" data-tpl="${t.id}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        ${t.id === 'python' ? '<path d="M12 3c-2.5 0-4 1-4 3v2h5v1H7c-2 0-4 1.5-4 4s2 4 4 4h2v-3c0-1.5 1.5-3 3-3h4c1.5 0 3-1 3-3V6c0-2-1.5-3-4-3h-3z"/><circle cx="9.5" cy="6" r=".8" fill="currentColor"/>'
+        : t.id === 'node' ? '<path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z"/><path d="M12 11v9M12 11L4 6.5M12 11l8-4.5"/>'
+        : '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/>'}
+      </svg><b>${t.name}</b></div>`).join('');
+  $('#tpl-list').querySelectorAll('.tpl').forEach(el => el.onclick = () => {
+    tplCur = el.dataset.tpl;
+    $('#tpl-list').querySelectorAll('.tpl').forEach(x => x.classList.toggle('on', x === el));
+  });
+  $('#mem-hint').textContent =
+    `实例内存共享集群预算：已用 ${r.memUsedMi} / ${r.memBudgetMi} Mi，持久磁盘已用 ${r.diskUsedGi} / ${r.diskBudgetGi} Gi。停止实例会立即释放其内存额度（数据保留）。`;
 }
 $('#new-btn').onclick = openCreate;
 $('#banner-create').onclick = () => { switchView('instances'); openCreate(); };
@@ -869,6 +989,7 @@ $('#del-ok').onclick = async () => {
   const r = await api('/api/instances/' + delTarget, {method:'DELETE'});
   $('#del-mask').classList.remove('show');
   r.ok ? toast(`实例 ${delTarget} 已删除`, 'ok') : toast(r.error, 'err');
+  if (detailName === delTarget) $('#detail-mask').classList.remove('show');
   refresh();
 };
 document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => $('#'+b.dataset.close).classList.remove('show'));
@@ -879,8 +1000,7 @@ $('#pwd-btn').onclick = () => { $('#pw-old').value = $('#pw-new').value = $('#pw
 $('#pw-new2').addEventListener('keydown', e => { if (e.key === 'Enter') $('#pwd-ok').click(); });
 $('#pwd-ok').onclick = async () => {
   if ($('#pw-new').value !== $('#pw-new2').value) { $('#pwd-err').textContent = '两次输入的新密码不一致'; return; }
-  const r = await api('/api/password', {method:'POST', body:JSON.stringify({
-    old:$('#pw-old').value, new:$('#pw-new').value})});
+  const r = await api('/api/password', {method:'POST', body:JSON.stringify({old:$('#pw-old').value, new:$('#pw-new').value})});
   if (r.ok) { $('#pwd-mask').classList.remove('show'); toast('密码修改成功，下次登录生效', 'ok'); }
   else $('#pwd-err').textContent = r.error || '修改失败';
 };
@@ -891,6 +1011,145 @@ $('#seg-filter').querySelectorAll('button').forEach(b => b.onclick = () => {
   $('#seg-filter').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
   curFilter = b.dataset.f; renderList();
 });
+
+/* ---------------- 实例详情抽屉 ---------------- */
+async function openDetail(name) {
+  detailName = name;
+  $('#detail-mask').classList.add('show');
+  $('#term-out').innerHTML = '<span class="dim"># 输出显示在此处。示例: ls -la /home/coder/project</span>';
+  await loadDetail(name);
+}
+$('#d-close').onclick = () => { $('#detail-mask').classList.remove('show'); detailName = null; };
+$('#detail-mask').addEventListener('click', e => { if (e.target === e.currentTarget) { $('#detail-mask').classList.remove('show'); detailName = null; } });
+$('#d-refresh').onclick = () => loadDetail(detailName);
+
+async function loadDetail(name, silent) {
+  try {
+    const [d, met] = await Promise.all([
+      api('/api/instances/' + name + '/detail'), api('/api/metrics')]);
+    if (!d.ok) { toast(d.error || '加载失败', 'err'); $('#detail-mask').classList.remove('show'); detailName = null; return; }
+    renderDetail(d, met);
+  } catch (e) { if (!silent) toast('加载详情失败', 'err'); }
+}
+function renderDetail(d, met) {
+  $('#d-chip').textContent = d.name.slice(0,1).toUpperCase();
+  $('#d-chip').style.background = chipColor(d.name);
+  $('#d-name').textContent = d.name;
+  $('#d-sub').textContent = `webide-${d.name} · ${d.flavorName} · 所有者 ${d.owner}`;
+  $('#d-state').innerHTML = stateBadge(d.state);
+  const running = d.state === '运行中', stopped = d.state === '已停止';
+  $('#d-actions').innerHTML =
+    `<span class="link-act ${d.nodePort && running ? '' : 'mute'}" onclick="openIDE('${d.name}')">打开 IDE</span>` +
+    (stopped ? `<span class="link-act" onclick="detailAct('start')">启动</span>`
+             : `<span class="link-act" onclick="detailAct('restart')">重启</span>
+                <span class="link-act" onclick="detailAct('stop')">停止</span>`) +
+    `<span class="link-act danger" onclick="preDelete('${d.name}')">删除</span>`;
+  $('#d-kv').innerHTML = `
+    <span class="k">规格套餐</span><span class="v">${d.flavorName}（${d.resources.cpu}C / ${d.resources.mem} / ${d.resources.disk}）</span>
+    <span class="k">实时用量</span><span class="v">CPU ${d.usage.cpu_m}m · 内存 ${fmtMi(d.usage.mem_mi)}</span>
+    <span class="k">IDE 地址</span><span class="v">${d.nodePort ? `http://${location.hostname}:${d.nodePort}` : '—'}</span>
+    <span class="k">创建时间</span><span class="v">${d.createdAt}</span>`;
+  $('#d-chart').innerHTML = d.state === '运行中'
+    ? sparkline(d.memCurve || [], 560, 80, (parseInt(d.resources.mem) || 1) * 1024, '#00b2a9')
+    : '<div class="loading" style="padding:16px;color:var(--t3)">实例未运行，无监控数据</div>';
+  const pr = $('#d-ports');
+  pr.innerHTML = (d.extraPorts || []).length ? d.extraPorts.map(p => `
+    <div class="port-row"><span class="tag">${p.port}</span><span>→</span>
+      <a href="http://${location.hostname}:${p.nodePort}" target="_blank">:${p.nodePort}</a>
+      <span style="color:var(--t4);font-size:11.5px">浏览器直接访问实例内 ${p.port} 端口服务</span>
+      <div class="sp" style="flex:1"></div>
+      <span class="link-act danger" data-pdel="${p.port}">收回</span></div>`).join('')
+    : '<div style="color:var(--t3);font-size:12.5px;padding:4px 0">尚未暴露任何应用端口。在实例内启动 Web 服务（如 python -m http.server 3000）后，在此暴露端口即可从浏览器访问。</div>';
+  pr.querySelectorAll('[data-pdel]').forEach(b => b.onclick = async () => {
+    const r = await api(`/api/instances/${d.name}/ports/${b.dataset.pdel}`, {method:'DELETE'});
+    r.ok ? toast(`端口 ${b.dataset.pdel} 已收回`, 'ok') : toast(r.error, 'err');
+    loadDetail(d.name);
+  });
+  $('#d-events').innerHTML = (d.events || []).length ? d.events.map(e => `
+    <div class="it"><span class="dot" style="background:${e.type === 'Warning' ? 'var(--warning)' : 'var(--success)'}"></span>
+      <span class="tx"><b>${e.reason}</b> ${e.msg}</span><span class="tm">${e.ts}</span></div>`).join('')
+    : '<div class="empty">暂无事件</div>';
+}
+async function detailAct(act) {
+  const r = await api(`/api/instances/${detailName}/${act}`, {method:'POST'});
+  r.ok ? toast(`实例 ${detailName} ${act === 'stop' ? '停止中' : act === 'restart' ? '重启中' : '启动中'}`, 'ok') : toast(r.error, 'err');
+  setTimeout(() => { refresh(); loadDetail(detailName); }, 1200);
+}
+function preDelete(name) {
+  $('#detail-mask').classList.remove('show');
+  delTarget = name; $('#del-name').textContent = name;
+  $('#del-confirm-ipt').value = ''; $('#del-ok').disabled = true;
+  $('#del-mask').classList.add('show');
+}
+$('#port-add').onclick = async () => {
+  const port = $('#port-input').value.trim();
+  if (!port) return;
+  const r = await api(`/api/instances/${detailName}/ports`, {method:'POST', body:JSON.stringify({port: parseInt(port)})});
+  if (r.ok) { toast(`端口 ${port} 已暴露 → NodePort ${r.nodePort}`, 'ok'); $('#port-input').value = ''; loadDetail(detailName); }
+  else toast(r.error, 'err');
+};
+$('#port-input').addEventListener('keydown', e => { if (e.key === 'Enter') $('#port-add').click(); });
+async function runCmd() {
+  const cmd = $('#term-cmd').value.trim();
+  if (!cmd || !detailName) return;
+  const out = $('#term-out');
+  out.insertAdjacentHTML('beforeend', `\n<span class="dim">$</span> ${cmd.replace(/</g,'&lt;')}`);
+  out.insertAdjacentHTML('beforeend', '\n<span class="dim">执行中…</span>');
+  out.scrollTop = out.scrollHeight;
+  const r = await api(`/api/instances/${detailName}/exec`, {method:'POST', body:JSON.stringify({cmd})});
+  out.lastChild.remove();
+  out.insertAdjacentHTML('beforeend', '\n' + (r.ok ? r.output.replace(/</g,'&lt;') : '错误: ' + (r.error||'')).replace(/\n$/,''));
+  out.scrollTop = out.scrollHeight;
+  termHist.unshift(cmd); termIdx = -1;
+  $('#term-cmd').value = '';
+}
+$('#term-run').onclick = runCmd;
+$('#term-cmd').addEventListener('keydown', e => {
+  if (e.key === 'Enter') runCmd();
+  if (e.key === 'ArrowUp' && termHist.length) { termIdx = Math.min(termIdx + 1, termHist.length - 1); $('#term-cmd').value = termHist[termIdx]; }
+  if (e.key === 'ArrowDown') { termIdx = Math.max(termIdx - 1, -1); $('#term-cmd').value = termIdx >= 0 ? termHist[termIdx] : ''; }
+});
+
+/* ---------------- 用户管理(admin) ---------------- */
+async function loadUsers() {
+  const [u, s] = await Promise.all([api('/api/users'), api('/api/settings')]);
+  if (u.ok) {
+    $('#user-count').textContent = `共 ${u.users.length} 个账号`;
+    $('#user-rows').innerHTML = u.users.map(x => `<tr>
+      <td><div class="iname"><span class="chip" style="background:${chipColor(x.username)};width:30px;height:30px;font-size:12px">${x.username.slice(0,1).toUpperCase()}</span>
+        <b>${x.username}</b></div></td>
+      <td>${x.role === 'admin' ? '<span class="tag" style="background:var(--primary-bg);color:var(--primary)">管理员</span>' : '<span class="tag">开发者</span>'}</td>
+      <td>${x.instances} 个</td><td>${x.running} 个</td>
+      <td style="color:var(--t2);font-size:12.5px">${x.createdAt}</td>
+      <td>${x.username === me ? '<span style="color:var(--t4);font-size:12px">当前账号</span>' :
+        `<span class="link-act" data-rp="${x.username}">重置密码</span>
+         <span class="link-act danger" data-udel="${x.username}">删除</span>`}</td></tr>`).join('');
+    $('#user-rows').querySelectorAll('[data-rp]').forEach(b => b.onclick = () => {
+      rpTarget = b.dataset.rp; $('#rp-user').textContent = rpTarget; $('#rp-pass').value = ''; $('#rp-err').textContent = '';
+      $('#rp-mask').classList.add('show'); setTimeout(()=>$('#rp-pass').focus(), 80);
+    });
+    $('#user-rows').querySelectorAll('[data-udel]').forEach(b => b.onclick = async () => {
+      const r = await api('/api/users/' + b.dataset.udel, {method:'DELETE'});
+      r.ok ? toast(`用户 ${b.dataset.udel} 已删除`, 'ok') : toast(r.error, 'err');
+      loadUsers(); refresh();
+    });
+  }
+  if (s.ok) {
+    $('#sw-idle').classList.toggle('on', s.idleEnabled);
+    $('#idle-minutes').value = s.idleMinutes;
+  }
+}
+$('#sw-idle').onclick = () => $('#sw-idle').classList.toggle('on');
+$('#settings-save').onclick = async () => {
+  const r = await api('/api/settings', {method:'POST', body:JSON.stringify({
+    idleEnabled: $('#sw-idle').classList.contains('on'), idleMinutes: parseInt($('#idle-minutes').value) || 30})});
+  r.ok ? toast('策略已保存', 'ok') : toast(r.error, 'err');
+};
+$('#rp-ok').onclick = async () => {
+  const r = await api(`/api/users/${rpTarget}/reset-password`, {method:'POST', body:JSON.stringify({new: $('#rp-pass').value})});
+  if (r.ok) { $('#rp-mask').classList.remove('show'); toast(`用户 ${rpTarget} 密码已重置`, 'ok'); }
+  else $('#rp-err').textContent = r.error || '重置失败';
+};
 
 /* ---------------- IDE 抽屉 ---------------- */
 let ideUrl = '';

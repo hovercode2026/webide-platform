@@ -1,16 +1,20 @@
 """WebIDE 平台后端 — 基于 minikube/Kubernetes 编排 VSCode Server (code-server) 实例。
 
 能力总览:
-  - 多用户: 注册/登录/改密 (SQLite, 管理员内置), 实例按用户隔离 (k8s label 归属)
-  - 实例:   规格套餐 + 初始化模板, PVC 持久化, NodePort 直连, 启动/停止/重启/删除
-  - 配额:   集群内存预算 + 磁盘预算动态校验
-  - 监控:   metrics-server 实时采样, 内存用量历史曲线 + 实例级 CPU/内存
-  - 审计:   登录/注册/实例操作全量流水, 管理员可见
+  - 多用户: 注册/登录/改密 (SQLite), 实例按用户隔离, 内置管理员, 用户管理
+  - 实例:   规格套餐 + 初始化模板, PVC 持久化, NodePort 直连, 启停/重启/删除
+  - 端口:   应用端口预览(每实例最多 2 个), NodePort 自动分配
+  - 智能休眠: 空闲实例自动停止(可配置开关/时长), 释放内存预算
+  - 监控:   metrics-server 采样(总量+实例级), 历史曲线
+  - 终端:   实例内命令执行(带超时)
+  - 审计:   全量操作流水
 """
 import hashlib
+import json as _json
 import os
 import re
 import secrets
+import shlex
 import sqlite3
 import threading
 import time
@@ -20,6 +24,7 @@ from flask import Flask, jsonify, request, session, send_from_directory
 
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
+from kubernetes.stream import stream as k8s_exec_stream
 
 APP_NS = os.environ.get("WEBIDE_NS", "webide")
 CODE_IMAGE = os.environ.get("WEBIDE_CODE_IMAGE", "ghcr.io/coder/code-server:latest")
@@ -30,6 +35,7 @@ PORT_POOL_END = int(os.environ.get("WEBIDE_PORT_POOL_END", "30020"))
 MEM_BUDGET_MI = int(os.environ.get("WEBIDE_MEM_BUDGET_MI", "2100"))
 DISK_BUDGET_GI = int(os.environ.get("WEBIDE_DISK_BUDGET_GI", "35"))
 USER_MAX_RUNNING = int(os.environ.get("WEBIDE_USER_MAX_RUNNING", "2"))
+MAX_EXTRA_PORTS = int(os.environ.get("WEBIDE_MAX_EXTRA_PORTS", "2"))
 
 FLAVORS = {
     "b": {"name": "基础型", "desc": "日常开发", "cpu": "1", "memMi": 1024, "diskGi": 5},
@@ -38,7 +44,6 @@ FLAVORS = {
 }
 DEFAULT_FLAVOR = "b"
 
-# 初始化模板: init 容器仅在 project 目录为空时写入
 _TPL_PY = r'''if [ -z "$(ls -A /home/coder/project 2>/dev/null)" ]; then
   cat > /home/coder/project/README.md <<'EOF'
 # Python 示例工程
@@ -154,6 +159,22 @@ init_db()
 _conn = db()
 app.secret_key = _conn.execute("SELECT v FROM settings WHERE k='secret'").fetchone()["v"]
 _conn.close()
+
+
+def get_setting(k, default=""):
+    conn = db()
+    row = conn.execute("SELECT v FROM settings WHERE k=?", (k,)).fetchone()
+    conn.close()
+    return row["v"] if row else default
+
+
+def set_setting(k, v):
+    with _lock:
+        conn = db()
+        conn.execute("INSERT INTO settings(k,v) VALUES(?,?) "
+                     "ON CONFLICT(k) DO UPDATE SET v=excluded.v", (k, str(v)))
+        conn.commit()
+        conn.close()
 
 
 def audit(user, action, target="", detail=""):
@@ -278,6 +299,11 @@ def mem_str(mi):
     return "%dGi" % (mi // 1024) if mi >= 1024 else "%dMi" % mi
 
 
+def svc_extra_ports(svc):
+    return [{"port": p.port, "nodePort": p.node_port}
+            for p in (svc.spec.ports or []) if p.port != 8080]
+
+
 def pod_state(name):
     try:
         pods = core.list_namespaced_pod(APP_NS, label_selector="app=webide-instance,instance=" + name).items
@@ -359,20 +385,58 @@ def fetch_pod_metrics():
 
 
 history = deque(maxlen=240)
+idle_since = {}
+CPU_IDLE_M = 5.0
+
+
+def idle_check(m, now):
+    """空闲实例自动休眠: 连续 idle_minutes 分钟 CPU 低于阈值则停止, 释放内存预算。"""
+    if get_setting("idle_enabled", "1") != "1":
+        idle_since.clear()
+        return
+    try:
+        threshold_min = int(get_setting("idle_minutes", "30"))
+    except ValueError:
+        threshold_min = 30
+    deploys = list_deploys()
+    for d in deploys:
+        if (d.spec.replicas or 0) == 0:
+            idle_since.pop(d.metadata.labels.get("instance", ""), None)
+            continue
+        name = d.metadata.labels.get("instance", "")
+        created = d.metadata.creation_timestamp.timestamp() if d.metadata.creation_timestamp else now
+        if now - created < 600:  # 新实例 10 分钟保护期
+            continue
+        cpu = m.get(name, {}).get("cpu_m", 0)
+        if cpu < CPU_IDLE_M:
+            first = idle_since.setdefault(name, now)
+            if now - first >= threshold_min * 60:
+                try:
+                    apps.patch_namespaced_deployment_scale(
+                        "webide-" + name, APP_NS, {"spec": {"replicas": 0}})
+                    audit("system", "空闲休眠", name,
+                          "CPU 连续 %d 分钟低于 %.0fm, 已自动停止(数据保留)" % (threshold_min, CPU_IDLE_M))
+                except Exception as e:
+                    print("[webide] idle stop failed:", e, flush=True)
+                idle_since.pop(name, None)
+        else:
+            idle_since.pop(name, None)
 
 
 def sampler():
     while True:
         try:
             m = fetch_pod_metrics()
-            with _lock:
-                history.append({
-                    "ts": int(time.time()),
+            now = time.time()
+            snap = {"ts": int(now),
                     "cpu_m": round(sum(v["cpu_m"] for v in m.values()), 1),
                     "mem_mi": round(sum(v["mem_mi"] for v in m.values()), 1),
-                })
-        except Exception:
-            pass
+                    "pods": {k: dict(v) for k, v in m.items()}}
+            with _lock:
+                history.append(snap)
+            idle_check(m, now)
+        except Exception as e:
+            print("[webide] sampler:", e, flush=True)
         time.sleep(10)
 
 
@@ -464,14 +528,15 @@ def logout():
 @login_required
 def list_flavors(u):
     used = running_mem_mi()
-    items = [{
-        "id": fid, "name": f["name"], "desc": f["desc"],
-        "cpu": f["cpu"], "mem": mem_str(f["memMi"]), "disk": "%dGi" % f["diskGi"],
-        "fit": used + f["memMi"] <= MEM_BUDGET_MI,
-    } for fid, f in FLAVORS.items()]
-    return jsonify({"ok": True, "flavors": items, "memUsedMi": used, "memBudgetMi": MEM_BUDGET_MI,
-                    "diskUsedGi": used_disk_gi(), "diskBudgetGi": DISK_BUDGET_GI,
-                    "templates": [{"id": k, "name": v["name"]} for k, v in TEMPLATES.items()]})
+    return jsonify({
+        "ok": True,
+        "flavors": [{"id": fid, "name": f["name"], "desc": f["desc"], "cpu": f["cpu"],
+                     "mem": mem_str(f["memMi"]), "disk": "%dGi" % f["diskGi"],
+                     "fit": used + f["memMi"] <= MEM_BUDGET_MI} for fid, f in FLAVORS.items()],
+        "memUsedMi": used, "memBudgetMi": MEM_BUDGET_MI,
+        "diskUsedGi": used_disk_gi(), "diskBudgetGi": DISK_BUDGET_GI,
+        "templates": [{"id": k, "name": v["name"]} for k, v in TEMPLATES.items()],
+    })
 
 
 # ------------------------------------------------------------------ 实例
@@ -490,17 +555,21 @@ def list_instances(u):
         name = d.metadata.labels.get("instance", "")
         fid = deploy_flavor_id(d)
         f = FLAVORS[fid]
-        np = None
+        np, extra = None, []
         try:
             svc = core.read_namespaced_service("webide-" + name, APP_NS)
             if svc.spec.type == "NodePort":
-                np = svc.spec.ports[0].node_port
+                for p in (svc.spec.ports or []):
+                    if p.port == 8080:
+                        np = p.node_port
+                    else:
+                        extra.append({"port": p.port, "nodePort": p.node_port})
         except ApiException:
             pass
         state = "已停止" if (d.spec.replicas or 0) == 0 else pod_state(name)
         m = metrics.get(name, {})
         items.append({
-            "name": name, "state": state, "nodePort": np,
+            "name": name, "state": state, "nodePort": np, "extraPorts": extra,
             "owner": deploy_owner(d),
             "flavor": fid, "flavorName": f["name"],
             "resources": {"cpu": f["cpu"], "mem": mem_str(f["memMi"]),
@@ -619,12 +688,12 @@ def create_instance(u):
 
 
 def _owner_guard(fn):
-    def wrapper(u, name):
+    def wrapper(u, name, *a, **kw):
         d, e = get_deploy_checked(name, u)
         if e:
             msg, code = e
             return err(msg, code)
-        return fn(u, name, d)
+        return fn(u, name, d, *a, **kw)
 
     wrapper.__name__ = fn.__name__
     return wrapper
@@ -692,7 +761,137 @@ def restart_instance(u, name, d):
     return jsonify({"ok": True})
 
 
-# ------------------------------------------------------------------ 监控 / 审计 / 容量
+# ------------------------------------------------------------------ 端口预览
+
+@app.route("/api/instances/<name>/ports", methods=["POST"])
+@login_required
+@_owner_guard
+def add_port(u, name, d):
+    if (d.spec.replicas or 0) == 0:
+        return err("实例未运行，无法暴露端口")
+    body = request.get_json(silent=True) or {}
+    try:
+        port = int(body.get("port"))
+    except (TypeError, ValueError):
+        return err("端口必须是数字")
+    if not (1 <= port <= 65535) or port == 8080:
+        return err("端口无效（1-65535，且不能与 IDE 的 8080 冲突）")
+    svc = core.read_namespaced_service("webide-" + name, APP_NS)
+    ports = list(svc.spec.ports or [])
+    if len([p for p in ports if p.port != 8080]) >= MAX_EXTRA_PORTS:
+        return err("每实例最多暴露 %d 个应用端口" % MAX_EXTRA_PORTS)
+    if any(p.port == port for p in ports):
+        return err("该端口已暴露")
+    np = alloc_nodeport()
+    if np is None:
+        return err("NodePort 资源已用尽", 409)
+    ports.append(client.V1ServicePort(name="app-%d" % port, port=port, target_port=port, node_port=np))
+    try:
+        core.patch_namespaced_service("webide-" + name, APP_NS, {"spec": {"ports": [
+            {"name": p.name or "ide", "port": p.port, "target_port": p.target_port, "node_port": p.node_port}
+            for p in ports]}})
+    except ApiException as e:
+        return err("暴露失败: %s" % e.reason, 500)
+    audit(u["username"], "暴露端口", name, "%d → NodePort %d" % (port, np))
+    return jsonify({"ok": True, "port": port, "nodePort": np})
+
+
+@app.route("/api/instances/<name>/ports/<int:port>", methods=["DELETE"])
+@login_required
+@_owner_guard
+def del_port(u, name, d, port):
+    svc = core.read_namespaced_service("webide-" + name, APP_NS)
+    ports = [p for p in (svc.spec.ports or []) if p.port != 8080 and p.port != port]
+    try:
+        core.patch_namespaced_service("webide-" + name, APP_NS, {"spec": {"ports": [
+            {"name": p.name or "ide", "port": p.port, "target_port": p.target_port, "node_port": p.node_port}
+            for p in ports] + [{"name": "ide", "port": 8080, "target_port": 8080,
+                                "node_port": [x.node_port for x in (svc.spec.ports or []) if x.port == 8080][0]}]}})
+    except ApiException as e:
+        return err("收回失败: %s" % e.reason, 500)
+    audit(u["username"], "收回端口", name, str(port))
+    return jsonify({"ok": True})
+
+
+# ------------------------------------------------------------------ 命令终端
+
+@app.route("/api/instances/<name>/exec", methods=["POST"])
+@login_required
+@_owner_guard
+def exec_cmd(u, name, d):
+    if (d.spec.replicas or 0) == 0:
+        return err("实例未运行，无法执行命令")
+    cmd = ((request.get_json(silent=True) or {}).get("cmd") or "").strip()
+    if not cmd:
+        return err("命令为空")
+    try:
+        pods = core.list_namespaced_pod(
+            APP_NS, label_selector="app=webide-instance,instance=" + name).items
+        if not pods:
+            return err("实例 Pod 不存在")
+        pod = pods[0].metadata.name
+        resp = k8s_exec_stream(
+            core.connect_get_namespaced_pod_exec, pod, APP_NS,
+            container="code-server",
+            command=["/bin/sh", "-c", "timeout 25 sh -c " + shlex.quote(cmd)],
+            stderr=True, stdin=False, stdout=True, tty=False,
+            _preload_content=False)
+        while resp.is_open():
+            resp.update(timeout=25)
+        out = resp.read_all()
+        out = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", out or "")
+        return jsonify({"ok": True, "output": (out.strip() or "(无输出)")[:20000]})
+    except ApiException as e:
+        try:
+            msg = _json.loads(e.body).get("message", "")
+        except Exception:
+            msg = e.reason or str(e)[:200]
+        return jsonify({"ok": True, "output": "(执行失败) %s" % msg})
+    except Exception as e:
+        return jsonify({"ok": True, "output": "(执行超时或失败) %s" % str(e)[:400]})
+
+
+# ------------------------------------------------------------------ 详情 / 监控 / 审计 / 容量
+
+@app.route("/api/instances/<name>/detail")
+@login_required
+@_owner_guard
+def instance_detail(u, name, d):
+    fid = deploy_flavor_id(d)
+    f = FLAVORS[fid]
+    extra = []
+    try:
+        svc = core.read_namespaced_service("webide-" + name, APP_NS)
+        extra = svc_extra_ports(svc)
+    except ApiException:
+        pass
+    evs = []
+    try:
+        ev_list = core.list_namespaced_event(
+            APP_NS, field_selector="involvedObject.name=webide-" + name)
+        for e in ev_list.items[-15:]:
+            ts = e.last_timestamp or e.first_timestamp or e.event_time
+            evs.append({"ts": ts.strftime("%m-%d %H:%M") if ts else "-",
+                        "type": e.type or "", "reason": e.reason or "", "msg": (e.message or "")[:160]})
+        evs.reverse()
+    except ApiException:
+        pass
+    m = fetch_pod_metrics().get(name, {"cpu_m": 0, "mem_mi": 0})
+    with _lock:
+        hist = [{"ts": h["ts"], "mem_mi": h["pods"].get(name, {}).get("mem_mi", 0)}
+                for h in history if name in (h.get("pods") or {})]
+    return jsonify({"ok": True, "name": name, "state": pod_state(name),
+                    "owner": deploy_owner(d), "flavor": fid, "flavorName": f["name"],
+                    "resources": {"cpu": f["cpu"], "mem": mem_str(f["memMi"]),
+                                  "disk": "%dGi" % f["diskGi"]},
+                    "nodePort": ([p.node_port for p in (
+                        core.read_namespaced_service("webide-" + name, APP_NS).spec.ports or [])
+                        if p.port == 8080] or [None])[0],
+                    "extraPorts": extra, "usage": m, "events": evs,
+                    "memCurve": hist[-120:],
+                    "createdAt": (d.metadata.creation_timestamp.strftime("%Y-%m-%d %H:%M")
+                                  if d.metadata.creation_timestamp else "-")})
+
 
 @app.route("/api/metrics")
 @login_required
@@ -737,8 +936,98 @@ def capacity(u):
         "runningMemMi": running_mem_mi(deploys), "memBudgetMi": MEM_BUDGET_MI,
         "diskUsedGi": used_disk_gi(), "diskBudgetGi": DISK_BUDGET_GI,
         "userCount": users, "userMaxRunning": USER_MAX_RUNNING,
+        "idleEnabled": get_setting("idle_enabled", "1") == "1",
+        "idleMinutes": int(get_setting("idle_minutes", "30") or 30),
         "version": {"kubeletVersion": (n.status.node_info.kubelet_version if n.status.node_info else "?")},
     })
+
+
+# ------------------------------------------------------------------ 设置 / 用户管理 (管理员)
+
+@app.route("/api/settings")
+@login_required
+@admin_required
+def get_settings(u):
+    return jsonify({"ok": True,
+                    "idleEnabled": get_setting("idle_enabled", "1") == "1",
+                    "idleMinutes": int(get_setting("idle_minutes", "30") or 30)})
+
+
+@app.route("/api/settings", methods=["POST"])
+@login_required
+@admin_required
+def update_settings(u):
+    body = request.get_json(silent=True) or {}
+    if "idleEnabled" in body:
+        set_setting("idle_enabled", "1" if body["idleEnabled"] else "0")
+    if "idleMinutes" in body:
+        try:
+            v = max(5, min(240, int(body["idleMinutes"])))
+        except (TypeError, ValueError):
+            return err("空闲时长必须是数字")
+        set_setting("idle_minutes", v)
+    audit(u["username"], "修改系统设置", "",
+          "空闲休眠 %s / %s 分钟" % (get_setting("idle_enabled", "1"), get_setting("idle_minutes", "30")))
+    return jsonify({"ok": True})
+
+
+@app.route("/api/users")
+@login_required
+@admin_required
+def list_users(u):
+    deploys = list_deploys()
+    conn = db()
+    rows = conn.execute("SELECT username, role, created_at FROM users ORDER BY created_at").fetchall()
+    conn.close()
+    users = []
+    for r in rows:
+        mine = [d for d in deploys if deploy_owner(d) == r["username"]]
+        users.append({"username": r["username"], "role": r["role"],
+                      "createdAt": time.strftime("%Y-%m-%d %H:%M", time.localtime(r["created_at"])),
+                      "instances": len(mine),
+                      "running": sum(1 for d in mine if (d.spec.replicas or 0) > 0)})
+    return jsonify({"ok": True, "users": users})
+
+
+@app.route("/api/users/<name>/reset-password", methods=["POST"])
+@login_required
+@admin_required
+def reset_password(u, name):
+    new = (request.get_json(silent=True) or {}).get("new") or ""
+    if len(new) < 6:
+        return err("新密码至少 6 位")
+    conn = db()
+    if not conn.execute("SELECT 1 FROM users WHERE username=?", (name,)).fetchone():
+        conn.close()
+        return err("用户不存在", 404)
+    salt = secrets.token_hex(8)
+    conn.execute("UPDATE users SET salt=?, passhash=? WHERE username=?",
+                 (salt, hash_pw(salt, new), name))
+    conn.commit()
+    conn.close()
+    audit(u["username"], "重置用户密码", name)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/users/<name>", methods=["DELETE"])
+@login_required
+@admin_required
+def delete_user(u, name):
+    if name == u["username"]:
+        return err("不能删除自己")
+    conn = db()
+    if not conn.execute("SELECT 1 FROM users WHERE username=?", (name,)).fetchone():
+        conn.close()
+        return err("用户不存在", 404)
+    conn.close()
+    if any(deploy_owner(d) == name for d in list_deploys()):
+        return err("该用户名下仍有实例，请先删除其全部实例")
+    conn = db()
+    conn.execute("DELETE FROM users WHERE username=?", (name,))
+    conn.commit()
+    conn.close()
+    audit(u["username"], "删除用户", name)
+    return jsonify({"ok": True})
 
 
 @app.route("/")

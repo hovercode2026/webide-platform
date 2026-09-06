@@ -16,8 +16,8 @@ metadata:
   namespace: webide
 rules:
   - apiGroups: ["", "apps"]
-    resources: ["pods", "pods/status", "services", "deployments", "deployments/scale",
-                "persistentvolumeclaims"]
+    resources: ["pods", "pods/status", "pods/exec", "services", "deployments", "deployments/scale",
+                "persistentvolumeclaims", "events"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
   - apiGroups: ["metrics.k8s.io"]
     resources: ["pods"]
