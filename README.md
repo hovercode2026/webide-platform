@@ -1,7 +1,17 @@
 # WebIDE 云开发平台（基于 minikube + VSCode Server）
 
 在测试机 **192.168.0.158**（Ubuntu 16.04 / 12 核 / 3.8G 内存 / 50G 磁盘）上搭建的多租户 WebIDE 平台。
-用户通过网页登录后，一键创建基于 **VSCode Server（code-server）** 的云开发实例，浏览器直接写代码。
+用户通过网页注册/登录后，一键创建基于 **VSCode Server（code-server）** 的云开发实例，浏览器直接写代码。
+
+## ✨ 功能特性
+
+- **多用户体系**：开放注册，实例按用户隔离（K8s label 归属），普通用户仅可见/可操作自己的实例；内置管理员可见全局并拥有完整操作审计
+- **规格套餐**：基础型 1C/1G/5G · 轻量型 1C/512M/5G · 增强型 2C/2G/10G，按集群内存预算动态校验（余量不足自动置灰）
+- **初始化模板**：创建实例时选择 空白 / Python / Node.js 脚手架（工作区为空时自动生成）
+- **实时监控**：metrics-server 采样，集群实例内存用量曲线 + 每实例实时 CPU/内存用量
+- **操作审计**：注册/登录/创建/启停/重启/删除全量流水，管理员在"最近动态"中查看
+- **生命周期管理**：启动 / 停止（数据保留）/ 重启 / 删除（输入实例名二次确认），实例内嵌预览 + 新窗口打开
+- **资源硬限制**：CPU/内存 cgroup 限额、5-10Gi 临时存储限额、PVC 持久化，集群内存预算 2100Mi、磁盘预算 35Gi 动态拦截
 
 ## 🎬 视频演示
 
@@ -14,9 +24,11 @@
 ## 架构
 
 ```
-浏览器 ──> WebIDE 平台 (Flask, NodePort 30080, namespace=webide)
-              │  k8s API (ServiceAccount + RBAC)
-              ├──> 每个实例 = PVC(5Gi) + Deployment(code-server, 1C/1G) + Service(NodePort)
+浏览器 ──> WebIDE 平台 (Flask + SQLite, NodePort 30080, namespace=webide)
+              │  k8s API (ServiceAccount + RBAC, 含 metrics.k8s.io)
+              ├──> 每个实例 = PVC(套餐磁盘) + Deployment(code-server, 按套餐限制) + Service(NodePort)
+              │       └─ 归属标签 webide.io/owner=<用户>，实现多用户隔离
+              ├──> metrics-server ──> 实时 CPU/内存采样 → 监控曲线
               └──> 用户浏览器 ──直连──> http://192.168.0.158:<NodePort>  (code-server)
 ```
 
