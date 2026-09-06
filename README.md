@@ -3,6 +3,14 @@
 在测试机 **192.168.0.158**（Ubuntu 16.04 / 12 核 / 3.8G 内存 / 50G 磁盘）上搭建的多租户 WebIDE 平台。
 用户通过网页登录后，一键创建基于 **VSCode Server（code-server）** 的云开发实例，浏览器直接写代码。
 
+## 🎬 视频演示
+
+[![WebIDE 云开发平台演示视频](https://i2.hdslb.com/bfs/archive/1424184f841dca54dc12ef66fe51f873e88f32a2.jpg)](https://www.bilibili.com/video/BV1ddbp6NEeY)
+
+**▶️ [【开源】1 分钟看完：旧电脑别扔！我用 k8s 把它改造成多人在线的云开发平台](https://www.bilibili.com/video/BV1ddbp6NEeY)**（Bilibili @Lemonの心情驿站，1min15s）
+
+> GitHub 的 README 出于安全考虑会过滤 `<iframe>`，无法直接内嵌在线播放，点击封面即可跳转观看。
+
 ## 架构
 
 ```
