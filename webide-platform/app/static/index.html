@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebIDE 开发者控制台</title>
+<style>
+  :root{
+    --primary:#3370ff; --primary-h:#4d80ff; --primary-a:#245bdb; --primary-bg:#eaf1ff;
+    --success:#34c724; --success-bg:#e8f8e6;
+    --warning:#ff8800; --warning-bg:#fff3e5;
+    --danger:#f54a45;  --danger-bg:#ffece8;
+    --t1:#1f2329; --t2:#51565f; --t3:#8f959e; --t4:#bfc4cc;
+    --border:#dee0e3; --border-l:#e9ebef;
+    --bg:#f3f4f8; --card:#fff;
+    --sh-sm:0 1px 2px rgba(31,35,41,.05);
+    --sh-md:0 4px 14px rgba(31,35,41,.08);
+    --sh-lg:0 12px 32px rgba(31,35,41,.16);
+    --r:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font:14px/1.6 -apple-system,"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei","Segoe UI",sans-serif;
+       background:var(--bg);color:var(--t1);-webkit-font-smoothing:antialiased}
+  button{cursor:pointer;border:none;background:none;font-family:inherit;font-size:14px}
+  input{font-family:inherit}
+  a{color:var(--primary);text-decoration:none}
+  a:hover{color:var(--primary-h)}
+  ::placeholder{color:var(--t4)}
+  .hidden{display:none!important}
+
+  /* ================= 布局骨架 ================= */
+  .shell{display:flex;height:100vh;overflow:hidden}
+  .sider{width:224px;flex:none;background:var(--card);border-right:1px solid var(--border-l);
+    display:flex;flex-direction:column;z-index:30}
+  .brand{display:flex;align-items:center;gap:11px;padding:18px 20px 16px}
+  .brand .mark{width:36px;height:36px;border-radius:9px;flex:none;
+    background:linear-gradient(135deg,#3370ff 0%,#6a9bff 100%);
+    display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(51,112,255,.35)}
+  .brand b{font-size:15.5px;letter-spacing:.2px;display:block;line-height:1.3}
+  .brand span{font-size:11px;color:var(--t3);display:block;line-height:1.3}
+  .nav{padding:6px 12px;flex:1}
+  .nav .cap{font-size:11px;color:var(--t4);padding:12px 12px 6px;letter-spacing:.5px}
+  .nav-item{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;margin:2px 0;
+    border-radius:8px;color:var(--t2);font-size:13.5px;transition:all .15s;text-align:left}
+  .nav-item svg{width:16px;height:16px;flex:none}
+  .nav-item:hover{background:#f5f6f8;color:var(--t1)}
+  .nav-item.active{background:var(--primary-bg);color:var(--primary);font-weight:600}
+  .sider-foot{padding:12px;border-top:1px solid var(--border-l)}
+  .env-chip{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--t3);
+    background:#f7f8fa;border:1px solid var(--border-l);border-radius:8px;padding:8px 10px}
+  .env-chip .dot{width:6px;height:6px;border-radius:50%;background:var(--success);flex:none;
+    box-shadow:0 0 0 3px rgba(52,199,36,.15)}
+
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .topbar{height:56px;flex:none;background:var(--card);border-bottom:1px solid var(--border-l);
+    display:flex;align-items:center;gap:14px;padding:0 24px}
+  .crumb{font-size:13px;color:var(--t3)}
+  .crumb b{color:var(--t1);font-weight:600}
+  .topbar .sp{flex:1}
+  .icon-btn{width:32px;height:32px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;
+    color:var(--t2);transition:all .15s}
+  .icon-btn:hover{background:#f2f3f5;color:var(--t1)}
+  .icon-btn svg{width:16px;height:16px}
+  .userchip{display:flex;align-items:center;gap:8px;padding:4px 6px 4px 4px;border-radius:99px;transition:background .15s}
+  .userchip:hover{background:#f2f3f5}
+  .avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#3370ff,#7b5cff);
+    color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center}
+  .userchip .name{font-size:13px;color:var(--t1)}
+  .content{flex:1;overflow-y:auto;padding:24px 28px 48px}
+
+  /* ================= 通用组件 ================= */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:34px;padding:0 16px;
+    border-radius:8px;font-size:13.5px;font-weight:500;transition:all .15s;border:1px solid transparent;white-space:nowrap}
+  .btn svg{width:14px;height:14px}
+  .btn-pri{background:var(--primary);color:#fff}
+  .btn-pri:hover{background:var(--primary-h)}
+  .btn-pri:active{background:var(--primary-a)}
+  .btn-def{background:var(--card);border-color:var(--border);color:var(--t1)}
+  .btn-def:hover{border-color:var(--primary);color:var(--primary)}
+  .btn-danger{background:var(--danger);color:#fff}
+  .btn-danger:hover{background:#f7655f}
+  .btn-ghost-danger{background:var(--card);border-color:var(--border);color:var(--danger)}
+  .btn-ghost-danger:hover{background:var(--danger-bg);border-color:var(--danger)}
+  .btn-sm{height:28px;padding:0 10px;font-size:12.5px;border-radius:7px}
+  .btn[disabled]{opacity:.45;cursor:not-allowed;pointer-events:none}
+  .link-act{color:var(--primary);font-size:13px;padding:2px 6px;border-radius:6px;transition:all .12s}
+  .link-act:hover{background:var(--primary-bg)}
+  .link-act.danger{color:var(--danger)}
+  .link-act.danger:hover{background:var(--danger-bg)}
+  .link-act.mute{color:var(--t3);cursor:not-allowed;pointer-events:none}
+
+  .card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh-sm);border:1px solid rgba(0,0,0,.03)}
+  .card-h{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border-l)}
+  .card-h b{font-size:15px;font-weight:600}
+  .card-h .sub{font-size:12px;color:var(--t3);margin-left:10px}
+  .tag{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:6px;
+    font-size:11.5px;background:#f2f3f5;color:var(--t2);font-family:Consolas,Menlo,monospace}
+
+  .badge{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:99px;font-size:12px;font-weight:500}
+  .badge .dot{width:6px;height:6px;border-radius:50%}
+  .badge.ok{background:var(--success-bg);color:#23a012}.badge.ok .dot{background:var(--success)}
+  .badge.boot{background:var(--warning-bg);color:#c96a00}.badge.boot .dot{background:var(--warning);animation:blink 1s infinite}
+  .badge.bad{background:var(--danger-bg);color:#d83931}.badge.bad .dot{background:var(--danger)}
+  .badge.stop{background:#f2f3f5;color:var(--t3)}.badge.stop .dot{background:var(--t4)}
+  @keyframes blink{50%{opacity:.25}}
+
+  /* ================= 登录页 ================= */
+  #login-view{height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;
+    background:#eef2f8}
+  #login-view::before{content:"";position:absolute;width:720px;height:720px;border-radius:50%;
+    background:radial-gradient(closest-side,rgba(51,112,255,.16),transparent);top:-260px;left:-180px}
+  #login-view::after{content:"";position:absolute;width:640px;height:640px;border-radius:50%;
+    background:radial-gradient(closest-side,rgba(124,92,255,.12),transparent);bottom:-240px;right:-140px}
+  .login-card{position:relative;width:400px;background:var(--card);border-radius:16px;box-shadow:var(--sh-lg);padding:40px 36px 30px;z-index:1}
+  .login-brand{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  .login-brand .mark{width:44px;height:44px;border-radius:11px;background:linear-gradient(135deg,#3370ff,#6a9bff);
+    display:flex;align-items:center;justify-content:center;box-shadow:0 6px 14px rgba(51,112,255,.35)}
+  .login-brand h1{font-size:20px;font-weight:600}
+  .login-sub{font-size:12.5px;color:var(--t3);margin-bottom:28px}
+  .f-item{margin-bottom:16px}
+  .f-item label{display:block;font-size:12.5px;color:var(--t2);margin-bottom:7px;font-weight:500}
+  .ipt{position:relative}
+  .ipt svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--t4)}
+  .ipt input{width:100%;height:40px;border:1px solid var(--border);border-radius:8px;background:#fbfbfc;
+    padding:0 12px 0 36px;font-size:13.5px;color:var(--t1);outline:none;transition:all .15s}
+  .ipt input:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px rgba(51,112,255,.12)}
+  #login-btn{width:100%;height:42px;font-size:14.5px;margin-top:6px}
+  #login-err{color:var(--danger);font-size:12.5px;min-height:18px;margin-top:12px;text-align:center}
+  .login-foot{margin-top:18px;padding-top:16px;border-top:1px solid var(--border-l);
+    display:flex;justify-content:center;gap:14px;font-size:11.5px;color:var(--t4)}
+
+  /* ================= 概览页 ================= */
+  .banner{position:relative;border-radius:14px;overflow:hidden;color:#fff;
+    background:linear-gradient(118deg,#245bdb 0%,#3370ff 55%,#6a9bff 100%);
+    padding:26px 30px;margin-bottom:20px;box-shadow:0 8px 24px rgba(36,91,219,.28)}
+  .banner h2{font-size:20px;font-weight:600;letter-spacing:.3px}
+  .banner p{font-size:13px;opacity:.85;margin:6px 0 18px}
+  .banner .btn{background:#fff;color:var(--primary-a);height:36px;font-weight:600}
+  .banner .btn:hover{background:#f0f5ff}
+  .banner svg.deco{position:absolute;right:24px;top:50%;transform:translateY(-50%);opacity:.5}
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+  .stat{background:var(--card);border-radius:12px;padding:18px 20px;box-shadow:var(--sh-sm);
+    border:1px solid rgba(0,0,0,.03);transition:all .2s}
+  .stat:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+  .stat .k{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--t3)}
+  .stat .ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:none}
+  .stat .ico svg{width:15px;height:15px}
+  .stat .v{font-size:26px;font-weight:600;margin-top:10px;letter-spacing:.3px;font-variant-numeric:tabular-nums}
+  .stat .v small{font-size:12px;color:var(--t3);font-weight:400;margin-left:2px}
+  .bar{height:4px;border-radius:99px;background:#eef0f3;margin-top:12px;overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:99px;background:var(--primary);transition:width .5s}
+  .bar i.full{background:var(--danger)}
+  .grid2{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+  .kv{display:grid;grid-template-columns:96px 1fr;row-gap:12px;padding:18px 20px;font-size:13px}
+  .kv .k{color:var(--t3)}
+  .kv .v{color:var(--t1);font-weight:500}
+  .spec{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 20px}
+  .spec .it{display:flex;gap:10px;align-items:center;background:#f8f9fb;border:1px solid var(--border-l);
+    border-radius:10px;padding:12px 14px}
+  .spec .it b{display:block;font-size:14px}
+  .spec .it span{font-size:11.5px;color:var(--t3)}
+
+  /* ================= 实例管理页 ================= */
+  .page-head{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px}
+  .page-head h2{font-size:19px;font-weight:600}
+  .page-head p{font-size:12.5px;color:var(--t3);margin-top:3px}
+  .page-head .sp{flex:1}
+  .toolbar{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border-l)}
+  .search{position:relative}
+  .search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--t4)}
+  .search input{height:32px;width:220px;border:1px solid var(--border);border-radius:8px;background:#fbfbfc;
+    padding:0 12px 0 30px;font-size:13px;outline:none;transition:all .15s}
+  .search input:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px rgba(51,112,255,.12)}
+  .seg{display:flex;background:#f2f3f5;border-radius:8px;padding:3px}
+  .seg button{height:26px;padding:0 12px;border-radius:6px;font-size:12.5px;color:var(--t2);transition:all .15s}
+  .seg button.on{background:#fff;color:var(--t1);font-weight:600;box-shadow:var(--sh-sm)}
+
+  table{width:100%;border-collapse:collapse}
+  thead th{background:#fafbfc;text-align:left;font-size:12px;color:var(--t3);font-weight:500;
+    padding:11px 20px;border-bottom:1px solid var(--border-l);white-space:nowrap}
+  tbody td{padding:15px 20px;border-bottom:1px solid var(--border-l);font-size:13.5px;white-space:nowrap}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr{transition:background .12s}
+  tbody tr:hover{background:#f8faff}
+  .iname{display:flex;align-items:center;gap:11px}
+  .iname .chip{width:34px;height:34px;border-radius:9px;flex:none;color:#fff;font-size:14px;font-weight:600;
+    display:flex;align-items:center;justify-content:center;font-family:Consolas,monospace}
+  .iname b{font-weight:600;font-size:13.5px}
+  .iname span{display:block;font-size:11.5px;color:var(--t3);font-weight:400}
+  .addr{display:inline-flex;align-items:center;gap:4px}
+  .addr .cp{color:var(--t4);padding:3px;border-radius:5px}
+  .addr .cp:hover{color:var(--primary);background:var(--primary-bg)}
+  .addr .cp svg{width:13px;height:13px}
+  .empty{padding:60px 0 70px;text-align:center}
+  .empty svg{width:120px;height:96px;margin-bottom:16px}
+  .empty .t1{font-size:14.5px;font-weight:600;color:var(--t1)}
+  .empty .t2{font-size:12.5px;color:var(--t3);margin:6px 0 18px}
+  .loading{padding:40px;text-align:center;color:var(--t3);font-size:13px}
+
+  /* ================= 弹窗 ================= */
+  .mask{position:fixed;inset:0;background:rgba(31,35,41,.5);backdrop-filter:blur(2px);z-index:100;
+    display:none;align-items:flex-start;justify-content:center;padding-top:12vh;animation:fade .15s}
+  .mask.show{display:flex}
+  .modal{width:460px;max-width:92vw;background:var(--card);border-radius:14px;box-shadow:var(--sh-lg);
+    animation:pop .18s ease-out;overflow:hidden}
+  @keyframes pop{from{opacity:0;transform:translateY(10px) scale(.98)}}
+  @keyframes fade{from{opacity:0}}
+  .m-head{display:flex;align-items:center;padding:18px 22px 0}
+  .m-head b{font-size:16px;font-weight:600}
+  .m-head .x{margin-left:auto}
+  .m-body{padding:16px 22px 4px}
+  .m-foot{display:flex;justify-content:flex-end;gap:10px;padding:16px 22px 20px}
+  .form-err{color:var(--danger);font-size:12px;min-height:16px;margin-top:6px}
+  .warnbox{display:flex;gap:10px;background:var(--warning-bg);border-radius:10px;padding:12px 14px;
+    font-size:12.5px;color:#9a5b00;margin-top:14px;line-height:1.7}
+  .warnbox svg{width:15px;height:15px;flex:none;margin-top:2px;color:var(--warning)}
+  .m-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px}
+  .m-grid .it{border:1px solid var(--border-l);border-radius:10px;padding:10px 12px;background:#fafbfc;text-align:center}
+  .m-grid .it b{display:block;font-size:15px}
+  .m-grid .it span{font-size:11px;color:var(--t3)}
+  .flavors{display:flex;flex-direction:column;gap:10px}
+  .flv{display:flex;align-items:center;gap:12px;border:1.5px solid var(--border-l);border-radius:10px;
+    padding:12px 14px;cursor:pointer;transition:all .15s;position:relative;background:#fff}
+  .flv:hover{border-color:var(--primary)}
+  .flv.on{border-color:var(--primary);background:var(--primary-bg)}
+  .flv.dis{opacity:.55;cursor:not-allowed;background:#fafbfc}
+  .flv.dis:hover{border-color:var(--border-l)}
+  .flv .rad{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--t4);flex:none;position:relative}
+  .flv.on .rad{border-color:var(--primary)}
+  .flv.on .rad::after{content:"";position:absolute;inset:3px;border-radius:50%;background:var(--primary)}
+  .flv .info{flex:1;min-width:0}
+  .flv .info b{font-size:13.5px}
+  .flv .info span{font-size:11.5px;color:var(--t3);margin-left:8px}
+  .flv .nofit{color:var(--danger)!important;margin-left:8px!important}
+  .flv .spec-t{display:flex;gap:6px;flex:none}
+  .flv .okmark{position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;
+    background:var(--primary);color:#fff;display:none;align-items:center;justify-content:center;
+    box-shadow:0 2px 6px rgba(51,112,255,.4)}
+  .flv.on .okmark{display:flex}
+  .flv .okmark svg{width:10px;height:10px}
+  .del-name{color:var(--danger);font-weight:600}
+
+  /* ================= IDE 抽屉 ================= */
+  .ide{position:fixed;inset:0;z-index:200;display:none;flex-direction:column;background:#252830;animation:fade .18s}
+  .ide.show{display:flex}
+  .ide-bar{height:50px;flex:none;display:flex;align-items:center;gap:12px;padding:0 16px;
+    background:var(--card);border-bottom:1px solid var(--border-l)}
+  .ide-bar .chip{width:28px;height:28px;border-radius:8px;color:#fff;font-size:12px;font-weight:600;
+    display:flex;align-items:center;justify-content:center;font-family:Consolas,monospace}
+  .ide-bar .ttl{font-size:13.5px;font-weight:600}
+  .ide-bar .url{font-size:12px;color:var(--t3);font-family:Consolas,Menlo,monospace;
+    background:#f5f6f8;border-radius:6px;padding:3px 10px;max-width:360px;overflow:hidden;text-overflow:ellipsis}
+  .ide-bar .sp{flex:1}
+  .ide iframe{flex:1;border:none;width:100%}
+
+  /* ================= Toast ================= */
+  #toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:10px;align-items:center}
+  .toast{display:flex;align-items:center;gap:9px;background:var(--card);border-radius:10px;box-shadow:var(--sh-lg);
+    padding:11px 18px;font-size:13.5px;animation:pop .2s;border:1px solid var(--border-l)}
+  .toast svg{width:16px;height:16px;flex:none}
+  .toast.ok svg{color:var(--success)} .toast.err svg{color:var(--danger)} .toast.info svg{color:var(--primary)}
+
+  @media (max-width: 1100px){
+    .stat-grid{grid-template-columns:repeat(2,1fr)}
+    .grid2{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== 登录 ==================== -->
+<div id="login-view" class="hidden">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M8.5 7L4 12l4.5 5M15.5 7L20 12l-4.5 5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div><h1>WebIDE 开发者控制台</h1></div>
+    </div>
+    <div class="login-sub">基于 Kubernetes 编排的云原生开发环境 · VSCode Server</div>
+    <div class="f-item"><label>用户名</label>
+      <div class="ipt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+      <input id="lg-user" placeholder="请输入用户名" autocomplete="username"></div></div>
+    <div class="f-item"><label>密码</label>
+      <div class="ipt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg>
+      <input id="lg-pass" type="password" placeholder="请输入密码" autocomplete="current-password"></div></div>
+    <button id="login-btn" class="btn btn-pri">登 录</button>
+    <div id="login-err"></div>
+    <div class="login-foot"><span>Kubernetes 1.28</span><span>·</span><span>code-server</span><span>·</span><span>内网测试环境</span></div>
+  </div>
+</div>
+
+<!-- ==================== 主界面 ==================== -->
+<div id="app-view" class="shell hidden">
+  <aside class="sider">
+    <div class="brand">
+      <div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M8.5 7L4 12l4.5 5M15.5 7L20 12l-4.5 5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div><b>WebIDE 控制台</b><span>Cloud Dev Platform</span></div>
+    </div>
+    <nav class="nav">
+      <div class="cap">云开发</div>
+      <button class="nav-item active" data-view="overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="5" rx="2"/><rect x="13" y="10" width="8" height="11" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/></svg>
+        资源概览</button>
+      <button class="nav-item" data-view="instances">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 9L6 12l2.5 3M15.5 9L18 12l-2.5 3"/><rect x="2.5" y="4" width="19" height="16" rx="3"/></svg>
+        实例管理</button>
+    </nav>
+    <div class="sider-foot">
+      <div class="env-chip"><span class="dot" id="env-dot"></span><span id="env-text">集群连接正常</span></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="crumb">控制台 / <b id="crumb-cur">资源概览</b></div>
+      <div class="sp"></div>
+      <button class="icon-btn" id="refresh-btn" title="刷新数据">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-2.6-6.4M21 3v6h-6"/></svg></button>
+      <div class="userchip">
+        <div class="avatar" id="u-avatar">A</div>
+        <span class="name" id="who">admin</span>
+        <button class="icon-btn" id="logout-btn" title="退出登录">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H6a2 2 0 01-2-2V5a2 2 0 012-2h3M16 17l5-5-5-5M21 12H9"/></svg></button>
+      </div>
+    </header>
+
+    <!-- ===== 概览 ===== -->
+    <div class="content" id="view-overview">
+      <div class="banner">
+        <svg class="deco" width="180" height="120" viewBox="0 0 180 120" fill="none">
+          <rect x="96" y="14" width="66" height="46" rx="8" fill="rgba(255,255,255,.16)"/>
+          <rect x="112" y="30" width="66" height="46" rx="8" fill="rgba(255,255,255,.28)"/>
+          <path d="M134 46l-6 7 6 7M148 46l6 7-6 7" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h2>开始云端开发</h2>
+        <p>一键创建 VSCode Server 实例，浏览器即是完整的开发环境，代码与数据持久化在云端磁盘</p>
+        <button class="btn" id="banner-create">立即创建实例</button>
+      </div>
+      <div class="stat-grid">
+        <div class="stat"><div class="k"><span class="ico" style="background:var(--primary-bg);color:var(--primary)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 9L6 12l2.5 3M15.5 9L18 12l-2.5 3"/><rect x="2.5" y="4" width="19" height="16" rx="3"/></svg></span>运行中实例</div>
+          <div class="v" id="st-running">-</div>
+          <div class="bar"><i id="st-running-bar" style="width:0%"></i></div></div>
+        <div class="stat"><div class="k"><span class="ico" style="background:var(--success-bg);color:#23a012">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17a5 5 0 01-.9-9.9A6 6 0 0118 8a4.5 4.5 0 010 9H7z"/></svg></span>实例总数</div>
+          <div class="v" id="st-total">-</div>
+          <div class="bar"><i id="st-total-bar" style="width:0%"></i></div></div>
+        <div class="stat"><div class="k"><span class="ico" style="background:#f1e9ff;color:#7b5cff">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg></span>可分配 CPU</div>
+          <div class="v" id="st-cpu">-<small>核</small></div>
+          <div class="bar"><i style="width:100%;background:#7b5cff"></i></div></div>
+        <div class="stat"><div class="k"><span class="ico" style="background:var(--warning-bg);color:var(--warning)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="10" rx="2"/><path d="M6 7V5M10 7V5M14 7V5M18 7V5M7 12h.01M11 12h.01M15 12h.01"/></svg></span>节点内存</div>
+          <div class="v" id="st-mem">-</div>
+          <div class="bar"><i style="width:100%;background:var(--warning)"></i></div></div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-h"><b>集群信息</b><span class="sub">minikube 单节点</span></div>
+          <div class="kv" id="cluster-kv"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><b>规格套餐</b><span class="sub">创建实例时可选</span></div>
+          <div class="spec" id="spec-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 实例管理 ===== -->
+    <div class="content hidden" id="view-instances">
+      <div class="page-head">
+        <div><h2>实例管理</h2><p>每个实例为独立容器，创建时可选择规格套餐，停止后数据保留</p></div>
+        <div class="sp"></div>
+        <button class="btn btn-pri" id="new-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>创建实例</button>
+      </div>
+      <div class="card">
+        <div class="toolbar">
+          <div class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+            <input id="search-ipt" placeholder="搜索实例名称"></div>
+          <div class="seg" id="seg-filter">
+            <button class="on" data-f="all">全部</button>
+            <button data-f="运行中">运行中</button>
+            <button data-f="已停止">已停止</button>
+            <button data-f="其他">启动中/异常</button>
+          </div>
+          <div style="flex:1"></div>
+          <span style="font-size:12px;color:var(--t3)" id="count-hint"></span>
+        </div>
+        <table>
+          <thead><tr>
+            <th style="width:26%">实例名称</th><th style="width:14%">状态</th>
+            <th style="width:20%">访问地址</th><th style="width:14%">配置规格</th>
+            <th style="width:12%">创建时间</th><th style="width:14%">操作</th>
+          </tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div id="list-extra"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 创建弹窗 ==================== -->
+<div class="mask" id="create-mask">
+  <div class="modal">
+    <div class="m-head"><b>创建开发实例</b>
+      <button class="icon-btn x" data-close="create-mask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="m-body">
+      <div class="f-item"><label>实例名称</label>
+        <div class="ipt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3z"/><path d="M4 7v10c0 1.7 3.6 3 8 3s8-1.3 8-3V7"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>
+        <input id="inst-name" placeholder="小写字母 / 数字 / 中划线，如 dev-demo" maxlength="20"></div>
+        <div class="form-err" id="create-err"></div></div>
+      <div class="f-item"><label>规格套餐</label>
+        <div class="flavors" id="flavor-list"><div class="loading" style="padding:8px;text-align:center;color:var(--t3)">加载中…</div></div></div>
+      <div class="warnbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
+        <span id="mem-hint">正在加载集群资源信息…</span></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-def" data-close="create-mask">取消</button>
+      <button class="btn btn-pri" id="create-ok">创建实例</button></div>
+  </div>
+</div>
+
+<!-- ==================== 删除弹窗 ==================== -->
+<div class="mask" id="del-mask">
+  <div class="modal">
+    <div class="m-head"><b>删除实例</b>
+      <button class="icon-btn x" data-close="del-mask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>
+    <div class="m-body">
+      <div class="warnbox" style="background:var(--danger-bg);color:#a8322e;margin-top:0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--danger)"><path d="M12 9v4M12 17v.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <span>即将删除实例 <b class="del-name" id="del-name"></b>，其 5Gi 工作盘上的<b>全部数据将被永久清除</b>，不可恢复。</span></div>
+      <div class="f-item" style="margin-top:14px"><label>请输入实例名称以确认操作</label>
+        <div class="ipt"><input id="del-confirm-ipt" placeholder="输入实例名称后删除按钮才可用"></div></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-def" data-close="del-mask">取消</button>
+      <button class="btn btn-danger" id="del-ok" disabled>确认删除</button></div>
+  </div>
+</div>
+
+<!-- ==================== IDE 抽屉 ==================== -->
+<div class="ide" id="ide-mask">
+  <div class="ide-bar">
+    <span class="chip" id="ide-chip">D</span>
+    <span class="ttl" id="ide-title">VSCode Server</span>
+    <span class="url" id="ide-url"></span>
+    <div class="sp"></div>
+    <button class="btn btn-def btn-sm" id="ide-refresh">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-2.6-6.4M21 3v6h-6"/></svg>刷新</button>
+    <button class="btn btn-def btn-sm" id="ide-copy">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>复制地址</button>
+    <button class="btn btn-pri btn-sm" id="ide-newtab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M10 14L21 3M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/></svg>新窗口打开</button>
+    <button class="btn btn-def btn-sm" id="ide-close">关闭预览</button>
+  </div>
+  <iframe id="ide-frame"></iframe>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const ICONS = {
+  ok:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/></svg>',
+  err:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>',
+  info:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.01"/></svg>'
+};
+const CHIP_COLORS = ['#3370ff','#7b5cff','#00b2a9','#ff8800','#e0533d','#2f9e44'];
+let me = null, pollTimer = null, delTarget = null, lastInstances = [], lastCap = null;
+let curFilter = 'all', curSearch = '', flavorCur = 'b', flavorMap = {};
+
+function toast(msg, cls='info') {
+  const d = document.createElement('div');
+  d.className = 'toast ' + cls;
+  d.innerHTML = ICONS[cls] + '<span></span>';
+  d.lastChild.textContent = msg;
+  $('#toast').appendChild(d);
+  setTimeout(() => { d.style.opacity = 0; d.style.transition = 'opacity .3s'; setTimeout(()=>d.remove(), 320); }, 3000);
+}
+async function api(path, opt={}) {
+  const r = await fetch(path, {headers:{'Content-Type':'application/json'}, ...opt});
+  if (r.status === 401 && me) { location.reload(); return {ok:false,error:'未登录'}; }
+  return r.json();
+}
+function relTime(s) {
+  if (!s) return '-';
+  const d = new Date(s.replace(' ', 'T') + 'Z');  /* 服务端为 UTC */
+  const diff = (Date.now() - d.getTime()) / 1000;
+  if (isNaN(diff)) return s;
+  if (diff < 90) return '刚刚';
+  if (diff < 3600) return Math.round(diff/60) + ' 分钟前';
+  if (diff < 86400) return Math.round(diff/3600) + ' 小时前';
+  return s.slice(5, 16);
+}
+const stateBadge = s => {
+  const ok = s === '运行中', boot = ['启动中','调度中','Pending'].includes(s),
+        bad = s.startsWith('异常'), stop = s === '已停止';
+  return `<span class="badge ${ok?'ok':boot?'boot':bad?'bad':stop?'stop':''}"><span class="dot"></span>${s}</span>`;
+};
+const chipColor = n => CHIP_COLORS[[...n].reduce((a,c)=>a+c.charCodeAt(0),0) % CHIP_COLORS.length];
+
+/* ---------------- 视图切换 ---------------- */
+document.querySelectorAll('.nav-item').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.nav-item').forEach(x => x.classList.toggle('active', x === b));
+  const v = b.dataset.view;
+  $('#view-overview').classList.toggle('hidden', v !== 'overview');
+  $('#view-instances').classList.toggle('hidden', v !== 'instances');
+  $('#crumb-cur').textContent = v === 'overview' ? '资源概览' : '实例管理';
+});
+
+/* ---------------- 登录 ---------------- */
+async function boot() {
+  const s = await api('/api/session');
+  if (s.user) { me = s.user; showApp(); } else $('#login-view').classList.remove('hidden');
+}
+$('#login-btn').onclick = doLogin;
+$('#lg-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+$('#lg-user').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+async function doLogin() {
+  $('#login-err').textContent = '';
+  const btn = $('#login-btn'); btn.disabled = true; btn.textContent = '登录中…';
+  const r = await api('/api/login', {method:'POST', body:JSON.stringify({
+    username:$('#lg-user').value.trim(), password:$('#lg-pass').value})});
+  btn.disabled = false; btn.textContent = '登 录';
+  if (r.ok) { me = $('#lg-user').value.trim(); showApp(); }
+  else $('#login-err').textContent = r.error || '登录失败，请重试';
+}
+$('#logout-btn').onclick = async () => { await api('/api/logout',{method:'POST'}); clearInterval(pollTimer); location.reload(); };
+
+function showApp() {
+  $('#login-view').classList.add('hidden');
+  $('#app-view').classList.remove('hidden');
+  $('#who').textContent = me;
+  $('#u-avatar').textContent = (me[0] || 'A').toUpperCase();
+  refresh();
+  clearInterval(pollTimer);
+  pollTimer = setInterval(() => { if (!$('#ide-mask').classList.contains('show')) refresh(); }, 5000);
+}
+
+/* ---------------- 数据刷新与渲染 ---------------- */
+$('#refresh-btn').onclick = () => { refresh(); toast('数据已刷新', 'ok'); };
+async function refresh() {
+  try {
+    const [cap, inst, flv] = await Promise.all([api('/api/capacity'), api('/api/instances'), api('/api/flavors')]);
+    if (!cap.ok || !inst.ok) { $('#env-text').textContent = '集群连接异常'; $('#env-dot').style.background = 'var(--danger)'; return; }
+    $('#env-text').textContent = '集群连接正常'; $('#env-dot').style.background = 'var(--success)';
+    lastCap = cap; lastInstances = inst.instances;
+    renderOverview(cap, inst);
+    if (flv.ok) renderSpecs(flv);
+    renderList();
+  } catch (e) { $('#env-text').textContent = '网络波动，稍后重试'; }
+}
+function fmtMem(ki) {
+  const n = parseInt(ki) || 0;
+  return n >= 1048576 ? (n/1048576).toFixed(1) + ' Gi' : Math.round(n/1024) + ' Mi';
+}
+function renderOverview(cap, inst) {
+  $('#st-running').innerHTML = `${inst.instances.filter(i => i.state === '运行中').length}<small>个运行中</small>`;
+  const rb = $('#st-running-bar');
+  rb.style.width = Math.min(100, (inst.runningMemMi || 0) / (inst.memBudgetMi || 1) * 100) + '%';
+  rb.classList.toggle('full', (inst.runningMemMi || 0) >= (inst.memBudgetMi || 1));
+  rb.parentElement.title = `内存预算已用 ${inst.runningMemMi || 0} / ${inst.memBudgetMi || 0} Mi`;
+  $('#st-total').innerHTML = `${inst.instances.length}<small>/ ${inst.maxTotal}</small>`;
+  const tb = $('#st-total-bar'); tb.style.width = Math.min(100, inst.instances.length / inst.maxTotal * 100) + '%';
+  tb.classList.toggle('full', inst.instances.length >= inst.maxTotal);
+  $('#st-cpu').innerHTML = `${cap.cpuAllocatable}<small>核</small>`;
+  $('#st-mem').innerHTML = fmtMem(cap.memoryAllocatable);
+  $('#cluster-kv').innerHTML = `
+    <span class="k">节点名称</span><span class="v">${cap.node}</span>
+    <span class="k">Kubernetes</span><span class="v">${cap.version.kubeletVersion}</span>
+    <span class="k">可分配资源</span><span class="v">${cap.cpuAllocatable} 核 CPU / ${fmtMem(cap.memoryAllocatable)} 内存</span>
+    <span class="k">访问端口池</span><span class="v">30001 - 30020（NodePort）</span>
+    <span class="k">内存预算</span><span class="v">${inst.runningMemMi || 0} / ${inst.memBudgetMi || 0} Mi（实例可用）</span>
+    <span class="k">磁盘配额</span><span class="v">${inst.diskUsedGi || 0} / ${inst.diskBudgetGi || 0} Gi（持久卷）</span>`;
+}
+function renderSpecs(flv) {
+  $('#spec-list').innerHTML = flv.flavors.map(f => `
+    <div class="it" style="${f.fit ? '' : 'opacity:.5'}">
+      <div><b>${f.name} · ${f.cpu}C ${f.mem} ${f.disk}</b><span>${f.desc}${f.fit ? '' : ' · 当前内存余量不足'}</span></div></div>`).join('');
+}
+function renderList() {
+  const rows = lastInstances.filter(r => {
+    if (curSearch && !r.name.includes(curSearch)) return false;
+    if (curFilter === 'all') return true;
+    if (curFilter === '其他') return !['运行中','已停止'].includes(r.state);
+    return r.state === curFilter;
+  });
+  $('#count-hint').textContent = `共 ${lastInstances.length} 个实例`;
+  $('#list-extra').innerHTML = rows.length ? '' : `
+    <div class="empty">
+      <svg viewBox="0 0 160 120" fill="none">
+        <rect x="30" y="18" width="100" height="72" rx="10" fill="#eef1f6"/>
+        <rect x="42" y="32" width="76" height="8" rx="4" fill="#dde3ec"/>
+        <rect x="42" y="48" width="52" height="8" rx="4" fill="#e6eaf1"/>
+        <circle cx="118" cy="86" r="22" fill="#3370ff" opacity=".12"/>
+        <path d="M110 86h16M118 78v16" stroke="#3370ff" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+      <div class="t1">${lastInstances.length ? '没有匹配的实例' : '还没有云开发实例'}</div>
+      <div class="t2">${lastInstances.length ? '换个关键词或筛选条件试试' : '创建一个实例，30 秒后即可在浏览器里写代码'}</div>
+      ${lastInstances.length ? '' : '<button class="btn btn-pri" onclick="openCreate()">创建第一个实例</button>'}
+    </div>`;
+  $('#rows').innerHTML = rows.map(r => {
+    const openable = r.nodePort && r.state === '运行中';
+    const running = r.state === '运行中', stopped = r.state === '已停止';
+    return `<tr>
+      <td><div class="iname">
+        <span class="chip" style="background:${chipColor(r.name)}">${r.name.slice(0,1).toUpperCase()}</span>
+        <div><b>${r.name}</b><span>webide-${r.name} · ${r.flavorName || ''}</span></div></div></td>
+      <td>${stateBadge(r.state)}</td>
+      <td>${r.nodePort ? `<span class="addr"><a href="http://${location.hostname}:${r.nodePort}" target="_blank">:${r.nodePort}</a>
+        <button class="cp" title="复制完整地址" data-copy="${r.nodePort}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg></button></span>`
+        : '<span style="color:var(--t4)">—</span>'}</td>
+      <td><span class="tag">${r.resources.cpu}C</span> <span class="tag">${r.resources.mem}</span> <span class="tag">${r.resources.disk}</span></td>
+      <td style="color:var(--t2);font-size:12.5px" title="${r.createdAt}">${relTime(r.createdAt)}</td>
+      <td><span class="link-act ${openable?'':'mute'}" data-open="${r.name}">打开 IDE</span>
+        ${stopped ? `<span class="link-act" data-start="${r.name}">启动</span>`
+                  : `<span class="link-act ${running?'':'mute'}" data-stop="${r.name}">停止</span>`}
+        <span class="link-act danger" data-del="${r.name}">删除</span></td></tr>`;
+  }).join('');
+  $('#rows').querySelectorAll('[data-open]').forEach(b => b.onclick = () => openIDE(b.dataset.open));
+  $('#rows').querySelectorAll('[data-stop]').forEach(b => b.onclick = async () => {
+    const r = await api(`/api/instances/${b.dataset.stop}/stop`, {method:'POST'});
+    r.ok ? toast(`实例 ${b.dataset.stop} 停止中，数据已保留`, 'ok') : toast(r.error, 'err');
+    setTimeout(refresh, 800);
+  });
+  $('#rows').querySelectorAll('[data-start]').forEach(b => b.onclick = async () => {
+    const r = await api(`/api/instances/${b.dataset.start}/start`, {method:'POST'});
+    r.ok ? toast(`实例 ${b.dataset.start} 启动中`, 'ok') : toast(r.error, 'err');
+    setTimeout(refresh, 800);
+  });
+  $('#rows').querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
+    delTarget = b.dataset.del;
+    $('#del-name').textContent = delTarget;
+    $('#del-confirm-ipt').value = ''; $('#del-ok').disabled = true;
+    $('#del-mask').classList.add('show');
+    setTimeout(()=>$('#del-confirm-ipt').focus(), 80);
+  });
+  $('#rows').querySelectorAll('[data-copy]').forEach(b => b.onclick = () => {
+    const url = `http://${location.hostname}:${b.dataset.copy}`;
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject())
+      .then(() => toast('地址已复制：' + url, 'ok'))
+      .catch(() => toast(url, 'info'));
+  });
+}
+
+/* ---------------- 创建 / 删除 ---------------- */
+async function openCreate() {
+  $('#inst-name').value = ''; $('#create-err').textContent = '';
+  $('#create-mask').classList.add('show');
+  setTimeout(() => $('#inst-name').focus(), 80);
+  const r = await api('/api/flavors');
+  if (!r.ok) { $('#flavor-list').innerHTML = '<div class="loading" style="padding:8px;color:var(--danger)">规格加载失败</div>'; return; }
+  flavorMap = {};
+  r.flavors.forEach(f => flavorMap[f.id] = f);
+  if (!flavorMap[flavorCur] || !flavorMap[flavorCur].fit)
+    flavorCur = (r.flavors.find(f => f.fit) || r.flavors[0]).id;
+  $('#flavor-list').innerHTML = r.flavors.map(f => `
+    <div class="flv ${f.id === flavorCur ? 'on' : ''} ${f.fit ? '' : 'dis'}" data-flv="${f.id}">
+      <span class="rad"></span>
+      <div class="info"><b>${f.name}</b><span>${f.desc}</span>${f.fit ? '' : '<span class="nofit">内存余量不足</span>'}</div>
+      <div class="spec-t"><span class="tag">${f.cpu}C</span><span class="tag">${f.mem}</span><span class="tag">${f.disk}</span></div>
+      <span class="okmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5"><path d="M5 13l4 4L19 7"/></svg></span>
+    </div>`).join('');
+  $('#flavor-list').querySelectorAll('.flv').forEach(el => el.onclick = () => {
+    const f = flavorMap[el.dataset.flv];
+    if (!f || !f.fit) { toast(`${f ? f.name : ''} 当前内存余量不足，无法选择`, 'err'); return; }
+    flavorCur = el.dataset.flv;
+    $('#flavor-list').querySelectorAll('.flv').forEach(x => x.classList.toggle('on', x === el));
+  });
+  $('#mem-hint').textContent =
+    `实例内存共享集群预算：已用 ${r.memUsedMi} / ${r.memBudgetMi} Mi，持久磁盘已用 ${r.diskUsedGi} / ${r.diskBudgetGi} Gi。停止实例会立即释放其内存额度（数据保留）。`;
+}
+$('#new-btn').onclick = openCreate;
+$('#banner-create').onclick = () => { switchView('instances'); openCreate(); };
+$('#create-ok').onclick = async () => {
+  const name = $('#inst-name').value.trim();
+  const btn = $('#create-ok'); btn.disabled = true; btn.textContent = '创建中…';
+  const r = await api('/api/instances', {method:'POST', body:JSON.stringify({name, flavor: flavorCur})});
+  btn.disabled = false; btn.textContent = '创建实例';
+  if (r.ok) {
+    $('#create-mask').classList.remove('show');
+    const f = flavorMap[flavorCur];
+    toast(`实例 ${name}（${f ? f.name : flavorCur}）创建成功，正在启动`, 'ok');
+    switchView('instances'); refresh();
+  } else $('#create-err').textContent = r.error || '创建失败';
+};
+$('#inst-name').addEventListener('keydown', e => { if (e.key === 'Enter') $('#create-ok').click(); });
+$('#del-confirm-ipt').addEventListener('input', e => { $('#del-ok').disabled = e.target.value !== delTarget; });
+$('#del-ok').onclick = async () => {
+  const r = await api('/api/instances/' + delTarget, {method:'DELETE'});
+  $('#del-mask').classList.remove('show');
+  r.ok ? toast(`实例 ${delTarget} 已删除`, 'ok') : toast(r.error, 'err');
+  refresh();
+};
+document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => $('#'+b.dataset.close).classList.remove('show'));
+document.querySelectorAll('.mask').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); }));
+
+/* ---------------- 搜索 / 筛选 ---------------- */
+$('#search-ipt').addEventListener('input', e => { curSearch = e.target.value.trim(); renderList(); });
+$('#seg-filter').querySelectorAll('button').forEach(b => b.onclick = () => {
+  $('#seg-filter').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  curFilter = b.dataset.f; renderList();
+});
+
+/* ---------------- IDE 抽屉 ---------------- */
+let ideUrl = '';
+function openIDE(name) {
+  const inst = lastInstances.find(i => i.name === name);
+  if (!inst || !inst.nodePort) return;
+  ideUrl = `http://${location.hostname}:${inst.nodePort}/?folder=/home/coder/project`;
+  $('#ide-chip').textContent = name.slice(0,1).toUpperCase();
+  $('#ide-chip').style.background = chipColor(name);
+  $('#ide-title').textContent = name + ' · VSCode Server';
+  $('#ide-url').textContent = ideUrl;
+  $('#ide-frame').src = ideUrl;
+  $('#ide-mask').classList.add('show');
+}
+$('#ide-close').onclick = () => { $('#ide-mask').classList.remove('show'); $('#ide-frame').src = ''; };
+$('#ide-newtab').onclick = () => window.open(ideUrl, '_blank');
+$('#ide-refresh').onclick = () => { $('#ide-frame').src = ideUrl; };
+$('#ide-copy').onclick = () => {
+  (navigator.clipboard ? navigator.clipboard.writeText(ideUrl) : Promise.reject())
+    .then(() => toast('地址已复制', 'ok')).catch(() => toast(ideUrl, 'info'));
+};
+function switchView(v) {
+  document.querySelectorAll('.nav-item').forEach(x => x.classList.toggle('active', x.dataset.view === v));
+  $('#view-overview').classList.toggle('hidden', v !== 'overview');
+  $('#view-instances').classList.toggle('hidden', v !== 'instances');
+  $('#crumb-cur').textContent = v === 'overview' ? '资源概览' : '实例管理';
+}
+
+boot();
+</script>
+</body>
+</html>

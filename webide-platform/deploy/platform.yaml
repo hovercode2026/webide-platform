@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: webide
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: webide-platform
+  namespace: webide
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: webide-platform
+  namespace: webide
+rules:
+  - apiGroups: ["", "apps"]
+    resources: ["pods", "pods/status", "services", "deployments", "deployments/scale",
+                "persistentvolumeclaims"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: webide-platform
+  namespace: webide
+subjects:
+  - kind: ServiceAccount
+    name: webide-platform
+    namespace: webide
+roleRef:
+  kind: Role
+  name: webide-platform
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: webide-platform-nodes
+rules:
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: webide-platform-nodes
+subjects:
+  - kind: ServiceAccount
+    name: webide-platform
+    namespace: webide
+roleRef:
+  kind: ClusterRole
+  name: webide-platform-nodes
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webide-platform
+  namespace: webide
+  labels: {app: webide-platform}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: webide-platform}}
+  template:
+    metadata: {labels: {app: webide-platform}}
+    spec:
+      serviceAccountName: webide-platform
+      containers:
+        - name: platform
+          image: webide-platform:1.0
+          imagePullPolicy: IfNotPresent
+          env:
+            # 登录密码通过 Secret 注入（可选），仓库不保存任何密码：
+            #   kubectl -n webide create secret generic webide-platform-auth --from-literal=password='你的密码'
+            # 不创建 Secret 时，平台每次启动随机生成初始密码（打印在 Pod 日志中）
+            - {name: WEBIDE_USER, value: "admin"}
+            - {name: WEBIDE_PASS, valueFrom:
+                secretKeyRef: {name: webide-platform-auth, key: password, optional: true}}
+            - {name: WEBIDE_NS, value: "webide"}
+            - {name: WEBIDE_MEM_BUDGET_MI, value: "2100"}
+            - {name: WEBIDE_MAX_TOTAL, value: "6"}
+          ports: [{containerPort: 8080}]
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          readinessProbe:
+            httpGet: {path: /api/health, port: 8080}
+            initialDelaySeconds: 3
+            periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webide-platform
+  namespace: webide
+spec:
+  type: NodePort
+  selector: {app: webide-platform}
+  ports:
+    - {port: 8080, targetPort: 8080, nodePort: 30080}
